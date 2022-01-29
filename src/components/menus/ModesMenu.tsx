@@ -9,10 +9,10 @@ export enum Mode {
   CustomShape,
 }
 
-interface ModesMenuProps {
+type ModesMenuProps = {
   currentMode: Mode;
   onModeChange: (mode: Mode) => void;
-}
+};
 
 export const ModesMenu: FunctionComponent<ModesMenuProps> = ({
   currentMode,

@@ -2,9 +2,9 @@ import { FunctionComponent, useEffect, useRef } from "react";
 import { useWindowDimensions } from "../hooks/useWindowDimensions";
 import "./Canvas.scss";
 
-interface CanvasProps {
+type CanvasProps = {
   draw: (context: CanvasRenderingContext2D, frame: number) => void;
-}
+};
 
 export const Canvas: FunctionComponent<CanvasProps> = ({ draw }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);

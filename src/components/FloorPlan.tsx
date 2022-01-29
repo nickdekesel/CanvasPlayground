@@ -3,40 +3,16 @@ import { useDrag, Position } from "../hooks/useDrag";
 import { Canvas } from "./Canvas";
 import "./FloorPlan.scss";
 import { Mode, ModesMenu } from "./menus/ModesMenu";
+import { Line, Rectangle, Shape } from "./Shape";
 
 type Selection = { start: Position; end: Position };
-type Color = string | "red" | "blue" | "green";
-type Shape = { id: string; points: Position[]; fill: Color };
-type SelectableShape = Shape & { selected: boolean };
+
+type SelectableShape = { shape: Shape; selected: boolean };
 
 const mockShapes: Shape[] = [
-  {
-    id: "0",
-    points: [
-      { x: 100, y: 200 },
-      { x: 400, y: 200 },
-      { x: 250, y: 400 },
-    ],
-    fill: "#FF0000",
-  },
-  {
-    id: "1",
-    points: [
-      { x: 400, y: 300 },
-      { x: 600, y: 300 },
-      { x: 600, y: 500 },
-      { x: 400, y: 500 },
-    ],
-    fill: "#0000FF",
-  },
-  {
-    id: "2",
-    points: [
-      { x: 200, y: 200 },
-      { x: 600, y: 300 },
-    ],
-    fill: "#000000",
-  },
+  new Rectangle("0", { x: 200, y: 400 }, 200, 400, "#FF0000"),
+  new Rectangle("1", { x: 500, y: 600 }, 300, 200, "#00FF00"),
+  new Line("2", { x: 100, y: 200 }, 100, 100, "#FF0000"),
 ];
 
 let shapeCount = mockShapes.length;
@@ -46,7 +22,7 @@ export const FloorPlan: FunctionComponent = () => {
   const [offset, setOffset] = useState<Position>({ x: 0, y: 0 });
   const [selection, setSelection] = useState<Selection | null>(null);
   const [shapes, setShapes] = useState<SelectableShape[]>(
-    mockShapes.map((s) => ({ ...s, selected: false }))
+    mockShapes.map((s) => ({ shape: s, selected: false }))
   );
 
   const [newShape, setNewShape] = useState<Shape | null>(null);
@@ -67,26 +43,10 @@ export const FloorPlan: FunctionComponent = () => {
     [offset]
   );
 
-  const positionInShape = (position: Position, shape: Shape) => {
-    if (shape.points.length === 0) {
-      return false;
-    }
-
-    const { x, y } = position;
-    const sortedXPositions = shape.points.map((p) => p.x).sort((a, b) => a - b);
-    const minX = sortedXPositions[0];
-    const maxX = sortedXPositions[sortedXPositions.length - 1];
-    const sortedYPositions = shape.points.map((p) => p.y).sort((a, b) => a - b);
-    const minY = sortedYPositions[0];
-    const maxY = sortedYPositions[sortedYPositions.length - 1];
-
-    return x >= minX && x <= maxX && y >= minY && y <= maxY;
-  };
-
   const findHoverOverShape = (position: Position) => {
     for (let i = shapes.length - 1; i >= 0; i--) {
       const shape = shapes[i];
-      if (positionInShape(position, shape)) {
+      if (shape.shape.isInside(position)) {
         return shape;
       }
     }
@@ -95,9 +55,11 @@ export const FloorPlan: FunctionComponent = () => {
 
   const setSelectedShapes = (shapesToSelected: SelectableShape[]) => {
     setShapes((shapes) =>
-      shapes.map((s) => ({
-        ...s,
-        selected: shapesToSelected.map((s) => s.id).includes(s.id),
+      shapes.map(({ shape }) => ({
+        shape,
+        selected: shapesToSelected
+          .map(({ shape }) => shape.id)
+          .includes(shape.id),
       }))
     );
   };
@@ -134,44 +96,40 @@ export const FloorPlan: FunctionComponent = () => {
             if (!shape.selected) {
               continue;
             }
-            for (let point of shape.points) {
-              point.x += delta.x;
-              point.y += delta.y;
-            }
+
+            shape.shape.position.x += delta.x;
+            shape.shape.position.y += delta.y;
           }
           setShapes(newShapes);
         } else {
           setSelection({ start, end });
         }
       } else if (mode === Mode.Line) {
-        setNewShape({
-          id: String(shapeCount++),
-          points: [
+        setNewShape(
+          new Line(
+            String(shapeCount++),
             getInverseOffsetPosition(start),
-            getInverseOffsetPosition(end),
-          ],
-          fill: "#00FF00",
-        });
+            end.x - start.x,
+            end.y - start.y,
+            "#00FF00"
+          )
+        );
       } else if (mode === Mode.Rectangle) {
-        const offsetStartPosition = getInverseOffsetPosition(start);
-        const offsetEndPosition = getInverseOffsetPosition(end);
-
-        setNewShape({
-          id: String(shapeCount++),
-          points: [
-            offsetStartPosition,
-            { x: offsetEndPosition.x, y: offsetStartPosition.y },
-            offsetEndPosition,
-            { x: offsetStartPosition.x, y: offsetEndPosition.y },
-          ],
-          fill: "#00FF00",
-        });
+        setNewShape(
+          new Rectangle(
+            String(shapeCount++),
+            getInverseOffsetPosition(start),
+            end.x - start.x,
+            end.y - start.y,
+            "#00FF00"
+          )
+        );
       }
     },
     onDragEnd: () => {
       setSelection(null);
       if (newShape) {
-        setShapes((shapes) => [...shapes, { ...newShape, selected: true }]);
+        setShapes((shapes) => [...shapes, { shape: newShape, selected: true }]);
         setNewShape(null);
       }
     },
@@ -200,33 +158,20 @@ export const FloorPlan: FunctionComponent = () => {
 
   const drawShapes = useCallback(
     (ctx: CanvasRenderingContext2D) => {
-      const allShapes: Shape[] = [...shapes];
+      const allShapes: Shape[] = [...shapes.map((s) => s.shape)];
       if (newShape) {
         allShapes.push(newShape);
       }
 
       for (let shape of allShapes) {
-        const { points } = shape;
-        if (points.length < 2) {
-          continue;
-        }
-
-        ctx.beginPath();
-        ctx.fillStyle = shape.fill;
-        ctx.strokeStyle = shape.fill;
-        for (let i = 0; i < points.length; i++) {
-          const point = points[i];
-          const offsetPoint = getOffsetPosition(point);
-          if (i === 0) {
-            ctx.moveTo(offsetPoint.x, offsetPoint.y);
-            continue;
-          }
-          ctx.lineTo(offsetPoint.x, offsetPoint.y);
-        }
-
-        if (points.length > 2) {
-          ctx.fill();
-        } else {
+        const offsetPoint = getOffsetPosition(shape.position);
+        if (shape instanceof Rectangle) {
+          ctx.fillStyle = shape.fill;
+          ctx.fillRect(offsetPoint.x, offsetPoint.y, shape.width, shape.height);
+        } else if (shape instanceof Line) {
+          ctx.strokeStyle = shape.fill;
+          ctx.moveTo(offsetPoint.x, offsetPoint.y);
+          ctx.lineTo(offsetPoint.x + shape.width, offsetPoint.y + shape.height);
           ctx.stroke();
         }
       }
