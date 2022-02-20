@@ -14,7 +14,6 @@ export const useDrag = ({onDrag, onDragStart, onDragEnd}: DragOptions) => {
       startPosition.current = { x: event.clientX, y: event.clientY };
       currentPosition.current = startPosition.current;
       onDragStart?.({ start: startPosition.current, end: startPosition.current, delta: { x: 0, y: 0 } });
-      window.addEventListener("mousemove", handleMouseMove);
     };
 
     const handleMouseUp = (_event: MouseEvent) => {
@@ -30,8 +29,7 @@ export const useDrag = ({onDrag, onDragStart, onDragEnd}: DragOptions) => {
       }
       startPosition.current = null;
       currentPosition.current = null;
-      window.removeEventListener("mousemove", handleMouseMove);
-    };
+    }
 
     const handleMouseMove = (event: MouseEvent) => {
       if (startPosition.current == null || currentPosition.current == null) {
@@ -49,9 +47,11 @@ export const useDrag = ({onDrag, onDragStart, onDragEnd}: DragOptions) => {
 
     window.addEventListener("mousedown", handleMouseDown);
     window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("mousemove", handleMouseMove);
     return () => {
       window.removeEventListener("mousedown", handleMouseDown);
       window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("mousemove", handleMouseMove);
     };
   }, [onDrag, onDragStart, onDragEnd]);
 }
