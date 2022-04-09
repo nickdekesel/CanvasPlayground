@@ -1,11 +1,18 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef } from "react";
 
 export type Position = { x: number; y: number };
 export type DragEvent = { start: Position; end: Position; delta: Position };
 export type DragEventHandler = (event: DragEvent) => void;
-export type DragOptions = { onDrag?: DragEventHandler, onDragStart?: DragEventHandler, onDragEnd?: DragEventHandler}
+export type DragOptions = {
+  onDrag?: DragEventHandler;
+  onDragStart?: DragEventHandler;
+  onDragEnd?: DragEventHandler;
+};
 
-export const useDrag = ({onDrag, onDragStart, onDragEnd}: DragOptions) => {
+export const useDrag = (
+  element: HTMLElement | null,
+  { onDrag, onDragStart, onDragEnd }: DragOptions
+) => {
   const startPosition = useRef<Position | null>(null);
   const currentPosition = useRef<Position | null>(null);
 
@@ -13,7 +20,11 @@ export const useDrag = ({onDrag, onDragStart, onDragEnd}: DragOptions) => {
     const handleMouseDown = (event: MouseEvent) => {
       startPosition.current = { x: event.clientX, y: event.clientY };
       currentPosition.current = startPosition.current;
-      onDragStart?.({ start: startPosition.current, end: startPosition.current, delta: { x: 0, y: 0 } });
+      onDragStart?.({
+        start: startPosition.current,
+        end: startPosition.current,
+        delta: { x: 0, y: 0 },
+      });
     };
 
     const handleMouseUp = (_event: MouseEvent) => {
@@ -23,13 +34,13 @@ export const useDrag = ({onDrag, onDragStart, onDragEnd}: DragOptions) => {
           end: currentPosition.current,
           delta: {
             x: currentPosition.current.x - startPosition.current.x,
-            y: currentPosition.current.x - startPosition.current.y
-          }
+            y: currentPosition.current.x - startPosition.current.y,
+          },
         });
       }
       startPosition.current = null;
       currentPosition.current = null;
-    }
+    };
 
     const handleMouseMove = (event: MouseEvent) => {
       if (startPosition.current == null || currentPosition.current == null) {
@@ -45,13 +56,13 @@ export const useDrag = ({onDrag, onDragStart, onDragEnd}: DragOptions) => {
       currentPosition.current = { x: event.clientX, y: event.clientY };
     };
 
-    window.addEventListener("mousedown", handleMouseDown);
-    window.addEventListener("mouseup", handleMouseUp);
-    window.addEventListener("mousemove", handleMouseMove);
+    element?.addEventListener("mousedown", handleMouseDown);
+    element?.addEventListener("mouseup", handleMouseUp);
+    element?.addEventListener("mousemove", handleMouseMove);
     return () => {
-      window.removeEventListener("mousedown", handleMouseDown);
-      window.removeEventListener("mouseup", handleMouseUp);
-      window.removeEventListener("mousemove", handleMouseMove);
+      element?.removeEventListener("mousedown", handleMouseDown);
+      element?.removeEventListener("mouseup", handleMouseUp);
+      element?.removeEventListener("mousemove", handleMouseMove);
     };
-  }, [onDrag, onDragStart, onDragEnd]);
-}
+  }, [element, onDrag, onDragStart, onDragEnd]);
+};

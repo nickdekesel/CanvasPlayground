@@ -16,6 +16,7 @@ const mockShapes: Shape[] = [
 let shapeCount = mockShapes.length;
 
 export const FloorPlan: FunctionComponent = () => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [mode, setMode] = useState<Mode>(Mode.Selection);
 
   const selection = useRef<Selection | null>(null);
@@ -45,7 +46,7 @@ export const FloorPlan: FunctionComponent = () => {
     return null;
   };
 
-  useDrag({
+  useDrag(canvasRef.current, {
     onDragStart: ({ start }) => {
       if (mode === Mode.Selection) {
         const hoverOverShape = findHoverOverShape(
@@ -151,7 +152,7 @@ export const FloorPlan: FunctionComponent = () => {
 
   return (
     <>
-      <Canvas draw={draw} />
+      <Canvas ref={canvasRef} draw={draw} />
       <ModesMenu currentMode={mode} onModeChange={setMode} />
     </>
   );

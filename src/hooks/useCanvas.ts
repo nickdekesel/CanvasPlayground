@@ -1,13 +1,12 @@
-import { useEffect, useRef } from "react";
+import { RefObject, useEffect } from "react";
 import { resizeCanvas } from "../utils/resizeCanvas";
 
 export const useCanvas = (
+  ref: RefObject<HTMLCanvasElement | null>,
   draw: (context: CanvasRenderingContext2D, frame: number) => void
 ) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
   useEffect(() => {
-    const canvas = canvasRef.current;
+    const canvas = ref.current;
     const ctx = canvas?.getContext("2d");
 
     if (canvas == null || ctx == null) {
@@ -35,7 +34,5 @@ export const useCanvas = (
     return () => {
       window.cancelAnimationFrame(animationFrameId);
     };
-  }, [draw]);
-
-  return canvasRef;
+  }, [ref, draw]);
 };
