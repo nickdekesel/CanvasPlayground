@@ -1,4 +1,7 @@
 import { FunctionComponent } from "react";
+import { CursorIcon, MoveIcon, ShapesIcon } from "../../icons";
+import { MenuOption } from "./MenuOption";
+import "./ModesMenu.scss";
 
 export enum Mode {
   Selection,
@@ -20,14 +23,21 @@ export const ModesMenu: FunctionComponent<ModesMenuProps> = ({
 }) => {
   return (
     <div className="menu">
-      <button onClick={() => onModeChange(Mode.Selection)}>Selection</button>
-      <button onClick={() => onModeChange(Mode.Move)}>Move</button>
-      <button onClick={() => onModeChange(Mode.Line)}>Line</button>
-      <button onClick={() => onModeChange(Mode.Rectangle)}>Rectangle</button>
-      <button onClick={() => onModeChange(Mode.Circle)}>Circle</button>
-      <button onClick={() => onModeChange(Mode.CustomShape)}>
-        Custom shape
-      </button>
+      <MenuOption
+        icon={CursorIcon}
+        selected={currentMode === Mode.Selection}
+        onClick={() => onModeChange(Mode.Selection)}
+      />
+      <MenuOption
+        icon={MoveIcon}
+        selected={currentMode === Mode.Move}
+        onClick={() => onModeChange(Mode.Move)}
+      />
+      <MenuOption
+        icon={ShapesIcon}
+        selected={currentMode === Mode.Rectangle}
+        onClick={() => onModeChange(Mode.Rectangle)}
+      />
     </div>
   );
 };

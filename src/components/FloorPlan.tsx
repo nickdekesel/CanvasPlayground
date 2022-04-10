@@ -1,9 +1,9 @@
 import { FunctionComponent, useRef, useState } from "react";
 import { useDrag, Position } from "../hooks/useDrag";
 import { Canvas } from "./Canvas";
-import "./FloorPlan.scss";
 import { Mode, ModesMenu } from "./menus/ModesMenu";
 import { Line, Rectangle, Shape } from "./Shape";
+import "./FloorPlan.scss";
 
 type Selection = { start: Position; end: Position };
 
