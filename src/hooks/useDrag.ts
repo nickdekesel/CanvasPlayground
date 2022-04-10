@@ -57,12 +57,12 @@ export const useDrag = (
     };
 
     element?.addEventListener("mousedown", handleMouseDown);
-    element?.addEventListener("mouseup", handleMouseUp);
-    element?.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("mousemove", handleMouseMove);
     return () => {
       element?.removeEventListener("mousedown", handleMouseDown);
-      element?.removeEventListener("mouseup", handleMouseUp);
-      element?.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("mousemove", handleMouseMove);
     };
   }, [element, onDrag, onDragStart, onDragEnd]);
 };

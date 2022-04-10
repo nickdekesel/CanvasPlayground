@@ -4,6 +4,7 @@ import { Canvas } from "./Canvas";
 import { Mode, ModesMenu } from "./menus/ModesMenu";
 import { Line, Rectangle, Shape } from "./Shape";
 import "./FloorPlan.scss";
+import { useElementState } from "../hooks/useElementState";
 
 type Selection = { start: Position; end: Position };
 
@@ -16,8 +17,9 @@ const mockShapes: Shape[] = [
 let shapeCount = mockShapes.length;
 
 export const FloorPlan: FunctionComponent = () => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [mode, setMode] = useState<Mode>(Mode.Selection);
+  const [canvasElement, canvasRef] =
+    useElementState<HTMLCanvasElement | null>();
 
   const selection = useRef<Selection | null>(null);
   const offset = useRef<Position>({ x: 0, y: 0 });
@@ -46,7 +48,7 @@ export const FloorPlan: FunctionComponent = () => {
     return null;
   };
 
-  useDrag(canvasRef.current, {
+  useDrag(canvasElement, {
     onDragStart: ({ start }) => {
       if (mode === Mode.Selection) {
         const hoverOverShape = findHoverOverShape(

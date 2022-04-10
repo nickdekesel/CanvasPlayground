@@ -1,5 +1,6 @@
-import { forwardRef, MutableRefObject, useEffect, useRef } from "react";
+import { forwardRef, useEffect, useRef } from "react";
 import { useCanvas } from "../hooks/useCanvas";
+import { useCombinedRefs } from "../hooks/useCombinedRefs";
 import { useWindowDimensions } from "../hooks/useWindowDimensions";
 import "./Canvas.scss";
 
@@ -10,6 +11,7 @@ type CanvasProps = {
 export const Canvas = forwardRef<HTMLCanvasElement | null, CanvasProps>(
   ({ draw }, forwardedRef) => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const refs = useCombinedRefs([canvasRef, forwardedRef]);
     useCanvas(canvasRef, draw);
     const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
@@ -23,15 +25,6 @@ export const Canvas = forwardRef<HTMLCanvasElement | null, CanvasProps>(
       canvas.style.height = windowHeight + "px";
     }, [canvasRef, windowWidth, windowHeight]);
 
-    return (
-      <canvas
-        ref={(node) => {
-          canvasRef.current = node;
-          (forwardedRef as MutableRefObject<HTMLCanvasElement | null>).current =
-            node;
-        }}
-        className="canvas"
-      />
-    );
+    return <canvas ref={refs} className="canvas" />;
   }
 );
