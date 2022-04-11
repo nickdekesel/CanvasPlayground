@@ -102,6 +102,7 @@ export const FloorPlan: FunctionComponent = () => {
     },
     onDragEnd: () => {
       if (newShape.current) {
+        newShape.current.fixAbsoluteDimensions();
         shapes.current = [...shapes.current, newShape.current];
         newShape.current = null;
       }
