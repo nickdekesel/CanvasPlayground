@@ -18,7 +18,7 @@ export abstract class Shape {
     }
     if (this.height < 0) {
       this.position.y = this.position.y + this.height;
-      this.height = Math.abs(this.width);
+      this.height = Math.abs(this.height);
     }
   }
 
