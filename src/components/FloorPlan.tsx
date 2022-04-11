@@ -101,13 +101,42 @@ export const FloorPlan: FunctionComponent = () => {
       }
     },
     onDragEnd: () => {
-      selection.current = null;
       if (newShape.current) {
         shapes.current = [...shapes.current, newShape.current];
         newShape.current = null;
       }
+
+      if (mode === Mode.Selection && selection.current != null) {
+        //select all elements in box
+      }
+      selection.current = null;
     },
   });
+
+  const drawGrid = (ctx: CanvasRenderingContext2D) => {
+    const gap = 40;
+    const width = ctx.canvas.clientWidth;
+    const height = ctx.canvas.clientHeight;
+
+    ctx.beginPath();
+    ctx.strokeStyle = "#f4f4f4";
+    ctx.lineWidth = 1;
+
+    // draw vertical grid lines
+    const startX = offset.current.x % gap;
+    for (let x = startX; x < width; x += gap) {
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+    }
+
+    // draw horizontal grid lines
+    const startY = offset.current.y % gap;
+    for (let y = startY; y < height; y += gap) {
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+    }
+    ctx.stroke();
+  };
 
   const drawSelection = (ctx: CanvasRenderingContext2D) => {
     if (selection.current == null) {
@@ -118,6 +147,7 @@ export const FloorPlan: FunctionComponent = () => {
     const width = end.x - start.x;
     const height = end.y - start.y;
 
+    ctx.beginPath();
     ctx.globalAlpha = 0.2;
     ctx.fillStyle = "#3399ff";
     ctx.fillRect(start.x, start.y, width, height);
@@ -133,13 +163,19 @@ export const FloorPlan: FunctionComponent = () => {
       allShapes.push(newShape.current);
     }
 
+    ctx.beginPath();
     for (let shape of allShapes) {
       const offsetPoint = getOffsetPosition(shape.position);
+
+      const color = selectedShapes.current.includes(shape.id)
+        ? "blue"
+        : shape.fill;
+
       if (shape instanceof Rectangle) {
-        ctx.fillStyle = shape.fill;
+        ctx.fillStyle = color;
         ctx.fillRect(offsetPoint.x, offsetPoint.y, shape.width, shape.height);
       } else if (shape instanceof Line) {
-        ctx.strokeStyle = shape.fill;
+        ctx.strokeStyle = color;
         ctx.moveTo(offsetPoint.x, offsetPoint.y);
         ctx.lineTo(offsetPoint.x + shape.width, offsetPoint.y + shape.height);
         ctx.stroke();
@@ -148,6 +184,7 @@ export const FloorPlan: FunctionComponent = () => {
   };
 
   const draw = (ctx: CanvasRenderingContext2D) => {
+    drawGrid(ctx);
     drawShapes(ctx);
     drawSelection(ctx);
   };
