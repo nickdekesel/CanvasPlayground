@@ -11,7 +11,7 @@ export abstract class Shape {
     public fill: Color
   ) {}
 
-  public fixAbsoluteDimensions() {
+  fixAbsoluteDimensions() {
     if (this.width < 0) {
       this.position.x = this.position.x + this.width;
       this.width = Math.abs(this.width);

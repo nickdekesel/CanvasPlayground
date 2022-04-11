@@ -5,6 +5,7 @@ import { Mode, ModesMenu } from "./menus/ModesMenu";
 import { Line, Rectangle, Shape } from "./Shape";
 import "./FloorPlan.scss";
 import { useElementState } from "../hooks/useElementState";
+import { areRectanglesOverlapping } from "../utils/rectangleUtils";
 
 type Selection = { start: Position; end: Position };
 
@@ -13,8 +14,6 @@ const mockShapes: Shape[] = [
   new Rectangle("1", { x: 500, y: 600 }, 300, 200, "#00FF00"),
   new Line("2", { x: 100, y: 200 }, 100, 100, "#FF0000"),
 ];
-
-let shapeCount = mockShapes.length;
 
 export const FloorPlan: FunctionComponent = () => {
   const [mode, setMode] = useState<Mode>(Mode.Selection);
@@ -46,6 +45,29 @@ export const FloorPlan: FunctionComponent = () => {
       }
     }
     return null;
+  };
+
+  const selectShapesInSelectionArea = () => {
+    if (selection.current == null) {
+      return;
+    }
+
+    const { start, end } = selection.current;
+    const selectionArea = new Rectangle(
+      "selection",
+      start,
+      end.x - start.x,
+      end.y - start.y,
+      "black"
+    );
+    selectionArea.fixAbsoluteDimensions();
+
+    for (let shape of shapes.current) {
+      if (areRectanglesOverlapping(selectionArea, shape)) {
+        selectedShapes.current = [...selectedShapes.current, shape.id];
+      }
+    }
+    console.log("selected shapes", selectedShapes.current);
   };
 
   useDrag(canvasElement, {
@@ -84,7 +106,7 @@ export const FloorPlan: FunctionComponent = () => {
         }
       } else if (mode === Mode.Line) {
         newShape.current = new Line(
-          String(shapeCount++),
+          String(shapes.current.length + 1),
           getInverseOffsetPosition(start),
           end.x - start.x,
           end.y - start.y,
@@ -92,7 +114,7 @@ export const FloorPlan: FunctionComponent = () => {
         );
       } else if (mode === Mode.Rectangle) {
         newShape.current = new Rectangle(
-          String(shapeCount++),
+          String(shapes.current.length + 1),
           getInverseOffsetPosition(start),
           end.x - start.x,
           end.y - start.y,
@@ -108,7 +130,7 @@ export const FloorPlan: FunctionComponent = () => {
       }
 
       if (mode === Mode.Selection && selection.current != null) {
-        //select all elements in box
+        selectShapesInSelectionArea();
       }
       selection.current = null;
     },
