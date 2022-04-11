@@ -77,7 +77,9 @@ export const FloorPlan: FunctionComponent = () => {
           getInverseOffsetPosition(start)
         );
         if (hoverOverShape) {
-          selectedShapes.current = [hoverOverShape.id];
+          if (!selectedShapes.current.includes(hoverOverShape.id)) {
+            selectedShapes.current = [hoverOverShape.id];
+          }
         } else {
           selectedShapes.current = [];
         }
