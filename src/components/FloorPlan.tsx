@@ -23,7 +23,7 @@ export const FloorPlan: FunctionComponent = () => {
   const selection = useRef<Selection | null>(null);
   const offset = useRef<Position>({ x: 0, y: 0 });
   const shapes = useRef<Shape[]>(mockShapes);
-  const selectedShapes = useRef<string[]>([]);
+  const selectedShapesIds = useRef<string[]>([]);
 
   const newShape = useRef<Shape | null>(null);
 
@@ -55,7 +55,7 @@ export const FloorPlan: FunctionComponent = () => {
     const { start, end } = selection.current;
     const selectionArea = new Rectangle(
       "selection",
-      start,
+      getInverseOffsetPosition(start),
       end.x - start.x,
       end.y - start.y,
       "black"
@@ -64,24 +64,24 @@ export const FloorPlan: FunctionComponent = () => {
 
     for (let shape of shapes.current) {
       if (areRectanglesOverlapping(selectionArea, shape)) {
-        selectedShapes.current = [...selectedShapes.current, shape.id];
+        selectedShapesIds.current = [...selectedShapesIds.current, shape.id];
       }
     }
-    console.log("selected shapes", selectedShapes.current);
+    console.log("selected shapes", selectedShapesIds.current);
   };
 
-  useDrag(canvasElement, {
+  const { isDragging } = useDrag(canvasElement, {
     onDragStart: ({ start }) => {
       if (mode === Mode.Selection) {
         const hoverOverShape = findHoverOverShape(
           getInverseOffsetPosition(start)
         );
         if (hoverOverShape) {
-          if (!selectedShapes.current.includes(hoverOverShape.id)) {
-            selectedShapes.current = [hoverOverShape.id];
+          if (!selectedShapesIds.current.includes(hoverOverShape.id)) {
+            selectedShapesIds.current = [hoverOverShape.id];
           }
         } else {
-          selectedShapes.current = [];
+          selectedShapesIds.current = [];
         }
       }
     },
@@ -92,10 +92,10 @@ export const FloorPlan: FunctionComponent = () => {
           y: offset.current.y + delta.y,
         };
       } else if (mode === Mode.Selection) {
-        if (selectedShapes.current.length) {
+        if (selectedShapesIds.current.length) {
           const newShapes = [...shapes.current];
           for (let shape of newShapes) {
-            if (!selectedShapes.current.includes(shape.id)) {
+            if (!selectedShapesIds.current.includes(shape.id)) {
               continue;
             }
 
@@ -163,7 +163,35 @@ export const FloorPlan: FunctionComponent = () => {
     ctx.stroke();
   };
 
-  const drawSelection = (ctx: CanvasRenderingContext2D) => {
+  const drawShapes = (ctx: CanvasRenderingContext2D) => {
+    const allShapes: Shape[] = [...shapes.current];
+    if (newShape.current) {
+      allShapes.push(newShape.current);
+    }
+
+    for (let shape of allShapes) {
+      ctx.beginPath();
+      const offsetPoint = getOffsetPosition(shape.position);
+
+      const color = shape.fill;
+
+      if (shape instanceof Rectangle) {
+        ctx.fillStyle = color;
+        ctx.fillRect(offsetPoint.x, offsetPoint.y, shape.width, shape.height);
+      } else if (shape instanceof Line) {
+        ctx.strokeStyle = color;
+        ctx.moveTo(offsetPoint.x, offsetPoint.y);
+        ctx.lineTo(offsetPoint.x + shape.width, offsetPoint.y + shape.height);
+        ctx.stroke();
+      }
+
+      if (selectedShapesIds.current.includes(shape.id)) {
+        drawShapeSelection(shape, ctx);
+      }
+    }
+  };
+
+  const drawSelectionArea = (ctx: CanvasRenderingContext2D) => {
     if (selection.current == null) {
       return;
     }
@@ -182,30 +210,72 @@ export const FloorPlan: FunctionComponent = () => {
     ctx.strokeRect(start.x, start.y, width, height);
   };
 
-  const drawShapes = (ctx: CanvasRenderingContext2D) => {
-    const allShapes: Shape[] = [...shapes.current];
-    if (newShape.current) {
-      allShapes.push(newShape.current);
+  const drawSelectionContainer = (ctx: CanvasRenderingContext2D) => {
+    if (isDragging) {
+      return;
+    }
+
+    const selectedShapes = shapes.current.filter((s) =>
+      selectedShapesIds.current.includes(s.id)
+    );
+
+    const margin = 2;
+
+    let minX, maxX, minY, maxY;
+    for (let shape of selectedShapes) {
+      const { x, y } = getOffsetPosition(shape.position);
+
+      if (minX == null || x < minX) {
+        minX = x;
+      }
+      if (minY == null || y < minY) {
+        minY = y;
+      }
+      if (maxX == null || x + shape.width > maxX) {
+        maxX = x + shape.width;
+      }
+      if (maxY == null || y + shape.height > maxY) {
+        maxY = y + shape.height;
+      }
+    }
+
+    if (
+      selectedShapes.length === 1 ||
+      minX == null ||
+      maxX == null ||
+      minY == null ||
+      maxY == null
+    ) {
+      return;
     }
 
     ctx.beginPath();
-    for (let shape of allShapes) {
-      const offsetPoint = getOffsetPosition(shape.position);
+    ctx.strokeStyle = " #0000ff";
+    ctx.strokeRect(
+      minX - margin,
+      minY - margin,
+      maxX - minX + 2 * margin,
+      maxY - minY + 2 * margin
+    );
+  };
 
-      const color = selectedShapes.current.includes(shape.id)
-        ? "blue"
-        : shape.fill;
+  const drawShapeSelection = (shape: Shape, ctx: CanvasRenderingContext2D) => {
+    const margin = 2;
+    const { x, y } = getOffsetPosition(shape.position);
 
-      if (shape instanceof Rectangle) {
-        ctx.fillStyle = color;
-        ctx.fillRect(offsetPoint.x, offsetPoint.y, shape.width, shape.height);
-      } else if (shape instanceof Line) {
-        ctx.strokeStyle = color;
-        ctx.moveTo(offsetPoint.x, offsetPoint.y);
-        ctx.lineTo(offsetPoint.x + shape.width, offsetPoint.y + shape.height);
-        ctx.stroke();
-      }
-    }
+    ctx.beginPath();
+    ctx.strokeStyle = "#6666ff";
+    ctx.strokeRect(
+      x - margin,
+      y - margin,
+      shape.width + 2 * margin,
+      shape.height + 2 * margin
+    );
+  };
+
+  const drawSelection = (ctx: CanvasRenderingContext2D) => {
+    drawSelectionArea(ctx);
+    drawSelectionContainer(ctx);
   };
 
   const draw = (ctx: CanvasRenderingContext2D) => {
