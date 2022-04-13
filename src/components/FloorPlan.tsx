@@ -128,10 +128,10 @@ export const FloorPlan: FunctionComponent = () => {
       if (newShape.current) {
         newShape.current.fixAbsoluteDimensions();
         shapes.current = [...shapes.current, newShape.current];
+        selectedShapesIds.current = [newShape.current.id];
         newShape.current = null;
-      }
-
-      if (mode === Mode.Selection && selection.current != null) {
+        setMode(Mode.Selection);
+      } else if (mode === Mode.Selection && selection.current != null) {
         selectShapesInSelectionArea();
       }
       selection.current = null;
