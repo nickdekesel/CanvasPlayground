@@ -180,6 +180,7 @@ export const FloorPlan: FunctionComponent = () => {
         ctx.fillRect(offsetPoint.x, offsetPoint.y, shape.width, shape.height);
       } else if (shape instanceof Line) {
         ctx.strokeStyle = color;
+        ctx.setLineDash([]);
         ctx.moveTo(offsetPoint.x, offsetPoint.y);
         ctx.lineTo(offsetPoint.x + shape.width, offsetPoint.y + shape.height);
         ctx.stroke();
@@ -250,7 +251,8 @@ export const FloorPlan: FunctionComponent = () => {
     }
 
     ctx.beginPath();
-    ctx.strokeStyle = " #0000ff";
+    ctx.setLineDash([5, 5]);
+    ctx.strokeStyle = "#000";
     ctx.strokeRect(
       minX - margin,
       minY - margin,
@@ -264,7 +266,8 @@ export const FloorPlan: FunctionComponent = () => {
     const { x, y } = getOffsetPosition(shape.position);
 
     ctx.beginPath();
-    ctx.strokeStyle = "#6666ff";
+    ctx.setLineDash([10, 5]);
+    ctx.strokeStyle = "#000";
     ctx.strokeRect(
       x - margin,
       y - margin,
