@@ -8,7 +8,7 @@ export abstract class Shape {
     public position: Position,
     public width: number,
     public height: number,
-    public fill: Color
+    public fill: Color = "black"
   ) {}
 
   fixAbsoluteDimensions() {

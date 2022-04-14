@@ -38,7 +38,7 @@ export const FloorPlan: FunctionComponent = () => {
     y: position.y - offset.current.y,
   });
 
-  const findHoverOverShape = (position: Position) => {
+  const findHoverOverShape = (position: Position): Shape | null => {
     for (let i = shapes.current.length - 1; i >= 0; i--) {
       const shape = shapes.current[i];
       if (shape.isInside(position)) {
@@ -46,6 +46,11 @@ export const FloorPlan: FunctionComponent = () => {
       }
     }
     return null;
+  };
+
+  const isHoveringOverSelection = (position: Position): boolean => {
+    const selectionContainer = getSelectionContainer();
+    return !!selectionContainer?.isInside(position);
   };
 
   const getShapesInSelectionArea = () => {
@@ -58,8 +63,7 @@ export const FloorPlan: FunctionComponent = () => {
       "selection",
       getInverseOffsetPosition(start),
       end.x - start.x,
-      end.y - start.y,
-      "black"
+      end.y - start.y
     );
     selectionArea.fixAbsoluteDimensions();
 
@@ -75,9 +79,14 @@ export const FloorPlan: FunctionComponent = () => {
   const { isDragging } = useDrag(canvasElement, {
     onDragStart: ({ start }) => {
       if (mode === Mode.Selection) {
-        const hoverOverShape = findHoverOverShape(
-          getInverseOffsetPosition(start)
-        );
+        const absolutePosition = getInverseOffsetPosition(start);
+        const hoveringOverSelection = isHoveringOverSelection(absolutePosition);
+
+        if (hoveringOverSelection) {
+          return;
+        }
+
+        const hoverOverShape = findHoverOverShape(absolutePosition);
         if (hoverOverShape) {
           if (!selectedShapesIds.current.includes(hoverOverShape.id)) {
             selectedShapesIds.current = [hoverOverShape.id];
@@ -219,11 +228,7 @@ export const FloorPlan: FunctionComponent = () => {
     ctx.strokeRect(start.x, start.y, width, height);
   };
 
-  const drawSelectionContainer = (ctx: CanvasRenderingContext2D) => {
-    if (isDragging) {
-      return;
-    }
-
+  const getSelectionContainer = (): Rectangle | null => {
     const selectedShapes = shapes.current.filter((s) =>
       selectedShapesIds.current.includes(s.id)
     );
@@ -255,6 +260,28 @@ export const FloorPlan: FunctionComponent = () => {
       minY == null ||
       maxY == null
     ) {
+      return null;
+    }
+
+    return new Rectangle(
+      "selection-area",
+      {
+        x: minX - margin,
+        y: minY - margin,
+      },
+      maxX - minX + 2 * margin,
+      maxY - minY + 2 * margin
+    );
+  };
+
+  const drawSelectionContainer = (ctx: CanvasRenderingContext2D) => {
+    if (isDragging) {
+      return;
+    }
+
+    const container = getSelectionContainer();
+
+    if (container == null) {
       return;
     }
 
@@ -262,10 +289,10 @@ export const FloorPlan: FunctionComponent = () => {
     ctx.setLineDash([5, 5]);
     ctx.strokeStyle = "#000";
     ctx.strokeRect(
-      minX - margin,
-      minY - margin,
-      maxX - minX + 2 * margin,
-      maxY - minY + 2 * margin
+      container.position.x,
+      container.position.y,
+      container.width,
+      container.height
     );
   };
 
