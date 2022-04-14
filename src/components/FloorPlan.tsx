@@ -65,13 +65,7 @@ export const FloorPlan: FunctionComponent = () => {
       }
     }
 
-    if (
-      selectedShapes.length === 1 ||
-      minX == null ||
-      maxX == null ||
-      minY == null ||
-      maxY == null
-    ) {
+    if (minX == null || maxX == null || minY == null || maxY == null) {
       return null;
     }
 
@@ -312,7 +306,7 @@ export const FloorPlan: FunctionComponent = () => {
   };
 
   const drawSelectionContainer = (ctx: CanvasRenderingContext2D) => {
-    if (isDragging.current) {
+    if (isDragging.current || selectedShapesIds.current.length <= 1) {
       return;
     }
 
