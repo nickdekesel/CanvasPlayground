@@ -3,9 +3,9 @@ import { useDrag, Position } from "../hooks/useDrag";
 import { Canvas } from "./Canvas";
 import { Mode, ModesMenu } from "./menus/ModesMenu";
 import { Line, Rectangle, Shape } from "./Shape";
-import "./FloorPlan.scss";
 import { useElementState } from "../hooks/useElementState";
 import { areRectanglesOverlapping } from "../utils/rectangleUtils";
+import "./FloorPlan.scss";
 
 type Selection = { start: Position; end: Position };
 
@@ -24,6 +24,7 @@ export const FloorPlan: FunctionComponent = () => {
   const offset = useRef<Position>({ x: 0, y: 0 });
   const shapes = useRef<Shape[]>(mockShapes);
   const selectedShapesIds = useRef<string[]>([]);
+  const shapeIdsToSelect = useRef<string[]>([]);
 
   const newShape = useRef<Shape | null>(null);
 
@@ -47,9 +48,9 @@ export const FloorPlan: FunctionComponent = () => {
     return null;
   };
 
-  const selectShapesInSelectionArea = () => {
+  const getShapesInSelectionArea = () => {
     if (selection.current == null) {
-      return;
+      return [];
     }
 
     const { start, end } = selection.current;
@@ -62,12 +63,13 @@ export const FloorPlan: FunctionComponent = () => {
     );
     selectionArea.fixAbsoluteDimensions();
 
+    const shapesInSelectionArea = [];
     for (let shape of shapes.current) {
       if (areRectanglesOverlapping(selectionArea, shape)) {
-        selectedShapesIds.current = [...selectedShapesIds.current, shape.id];
+        shapesInSelectionArea.push(shape.id);
       }
     }
-    console.log("selected shapes", selectedShapesIds.current);
+    return shapesInSelectionArea;
   };
 
   const { isDragging } = useDrag(canvasElement, {
@@ -105,6 +107,7 @@ export const FloorPlan: FunctionComponent = () => {
           shapes.current = newShapes;
         } else {
           selection.current = { start, end };
+          shapeIdsToSelect.current = getShapesInSelectionArea();
         }
       } else if (mode === Mode.Line) {
         newShape.current = new Line(
@@ -132,7 +135,8 @@ export const FloorPlan: FunctionComponent = () => {
         newShape.current = null;
         setMode(Mode.Selection);
       } else if (mode === Mode.Selection && selection.current != null) {
-        selectShapesInSelectionArea();
+        selectedShapesIds.current = [...shapeIdsToSelect.current];
+        shapeIdsToSelect.current = [];
       }
       selection.current = null;
     },
@@ -186,7 +190,10 @@ export const FloorPlan: FunctionComponent = () => {
         ctx.stroke();
       }
 
-      if (selectedShapesIds.current.includes(shape.id)) {
+      if (
+        selectedShapesIds.current.includes(shape.id) ||
+        shapeIdsToSelect.current.includes(shape.id)
+      ) {
         drawShapeSelection(shape, ctx);
       }
     }
@@ -208,6 +215,7 @@ export const FloorPlan: FunctionComponent = () => {
     ctx.globalAlpha = 1;
     ctx.strokeStyle = "#0000ff";
     ctx.lineWidth = 1;
+    ctx.setLineDash([]);
     ctx.strokeRect(start.x, start.y, width, height);
   };
 
