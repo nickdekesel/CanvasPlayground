@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 export type Position = { x: number; y: number };
 export type DragEvent = { start: Position; end: Position; delta: Position };
@@ -13,7 +13,6 @@ export const useDrag = (
   element: HTMLElement | null,
   { onDrag, onDragStart, onDragEnd }: DragOptions
 ) => {
-  const [isDragging, setIsDragging] = useState<boolean>(false);
   const startPosition = useRef<Position | null>(null);
   const currentPosition = useRef<Position | null>(null);
 
@@ -21,7 +20,6 @@ export const useDrag = (
     const handleMouseDown = (event: MouseEvent) => {
       startPosition.current = { x: event.clientX, y: event.clientY };
       currentPosition.current = startPosition.current;
-      setIsDragging(true);
       onDragStart?.({
         start: startPosition.current,
         end: startPosition.current,
@@ -30,7 +28,6 @@ export const useDrag = (
     };
 
     const handleMouseUp = (_event: MouseEvent) => {
-      setIsDragging(false);
       if (startPosition.current && currentPosition.current) {
         onDragEnd?.({
           start: startPosition.current,
@@ -68,6 +65,4 @@ export const useDrag = (
       window.removeEventListener("mousemove", handleMouseMove);
     };
   }, [element, onDrag, onDragStart, onDragEnd]);
-
-  return { isDragging };
 };

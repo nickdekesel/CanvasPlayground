@@ -6,6 +6,7 @@ import { Line, Rectangle, Shape } from "./Shape";
 import { useElementState } from "../hooks/useElementState";
 import { areRectanglesOverlapping } from "../utils/rectangleUtils";
 import "./FloorPlan.scss";
+import { useHover } from "../hooks/useHover";
 
 type Selection = { start: Position; end: Position };
 
@@ -20,6 +21,7 @@ export const FloorPlan: FunctionComponent = () => {
   const [canvasElement, canvasRef] =
     useElementState<HTMLCanvasElement | null>();
 
+  const isDragging = useRef<boolean>(false);
   const selection = useRef<Selection | null>(null);
   const offset = useRef<Position>({ x: 0, y: 0 });
   const shapes = useRef<Shape[]>(mockShapes);
@@ -37,6 +39,52 @@ export const FloorPlan: FunctionComponent = () => {
     x: position.x - offset.current.x,
     y: position.y - offset.current.y,
   });
+
+  const getSelectionContainer = (): Rectangle | null => {
+    const selectedShapes = shapes.current.filter((s) =>
+      selectedShapesIds.current.includes(s.id)
+    );
+
+    const margin = 2;
+
+    let minX, maxX, minY, maxY;
+    for (let shape of selectedShapes) {
+      const { x, y } = getOffsetPosition(shape.position);
+
+      if (minX == null || x < minX) {
+        minX = x;
+      }
+      if (minY == null || y < minY) {
+        minY = y;
+      }
+      if (maxX == null || x + shape.width > maxX) {
+        maxX = x + shape.width;
+      }
+      if (maxY == null || y + shape.height > maxY) {
+        maxY = y + shape.height;
+      }
+    }
+
+    if (
+      selectedShapes.length === 1 ||
+      minX == null ||
+      maxX == null ||
+      minY == null ||
+      maxY == null
+    ) {
+      return null;
+    }
+
+    return new Rectangle(
+      "selection-area",
+      {
+        x: minX - margin,
+        y: minY - margin,
+      },
+      maxX - minX + 2 * margin,
+      maxY - minY + 2 * margin
+    );
+  };
 
   const findHoverOverShape = (position: Position): Shape | null => {
     for (let i = shapes.current.length - 1; i >= 0; i--) {
@@ -76,17 +124,20 @@ export const FloorPlan: FunctionComponent = () => {
     return shapesInSelectionArea;
   };
 
-  const { isDragging } = useDrag(canvasElement, {
+  useDrag(canvasElement, {
     onDragStart: ({ start }) => {
+      isDragging.current = true;
+      setCursor(start);
       if (mode === Mode.Selection) {
-        const absolutePosition = getInverseOffsetPosition(start);
-        const hoveringOverSelection = isHoveringOverSelection(absolutePosition);
+        const hoveringOverSelection = isHoveringOverSelection(start);
 
         if (hoveringOverSelection) {
           return;
         }
 
-        const hoverOverShape = findHoverOverShape(absolutePosition);
+        const hoverOverShape = findHoverOverShape(
+          getInverseOffsetPosition(start)
+        );
         if (hoverOverShape) {
           if (!selectedShapesIds.current.includes(hoverOverShape.id)) {
             selectedShapesIds.current = [hoverOverShape.id];
@@ -136,7 +187,9 @@ export const FloorPlan: FunctionComponent = () => {
         );
       }
     },
-    onDragEnd: () => {
+    onDragEnd: ({ end }) => {
+      isDragging.current = false;
+      setCursor(end);
       if (newShape.current) {
         newShape.current.fixAbsoluteDimensions();
         shapes.current = [...shapes.current, newShape.current];
@@ -150,6 +203,36 @@ export const FloorPlan: FunctionComponent = () => {
       selection.current = null;
     },
   });
+
+  const setDefaultCursor = () => {
+    if (!canvasElement) {
+      return;
+    }
+
+    if (mode === Mode.Move) {
+      if (isDragging.current) {
+        canvasElement.style.cursor = "grabbing";
+      } else {
+        canvasElement.style.cursor = "grab";
+      }
+    } else {
+      canvasElement.style.cursor = "default";
+    }
+  };
+
+  const setCursor = (position: Position) => {
+    if (!canvasElement) {
+      return;
+    }
+
+    if (mode === Mode.Selection && isHoveringOverSelection(position)) {
+      canvasElement.style.cursor = "move";
+    } else {
+      setDefaultCursor();
+    }
+  };
+
+  useHover(canvasElement, setCursor);
 
   const drawGrid = (ctx: CanvasRenderingContext2D) => {
     const gap = 40;
@@ -228,54 +311,8 @@ export const FloorPlan: FunctionComponent = () => {
     ctx.strokeRect(start.x, start.y, width, height);
   };
 
-  const getSelectionContainer = (): Rectangle | null => {
-    const selectedShapes = shapes.current.filter((s) =>
-      selectedShapesIds.current.includes(s.id)
-    );
-
-    const margin = 2;
-
-    let minX, maxX, minY, maxY;
-    for (let shape of selectedShapes) {
-      const { x, y } = getOffsetPosition(shape.position);
-
-      if (minX == null || x < minX) {
-        minX = x;
-      }
-      if (minY == null || y < minY) {
-        minY = y;
-      }
-      if (maxX == null || x + shape.width > maxX) {
-        maxX = x + shape.width;
-      }
-      if (maxY == null || y + shape.height > maxY) {
-        maxY = y + shape.height;
-      }
-    }
-
-    if (
-      selectedShapes.length === 1 ||
-      minX == null ||
-      maxX == null ||
-      minY == null ||
-      maxY == null
-    ) {
-      return null;
-    }
-
-    return new Rectangle(
-      "selection-area",
-      {
-        x: minX - margin,
-        y: minY - margin,
-      },
-      maxX - minX + 2 * margin,
-      maxY - minY + 2 * margin
-    );
-  };
-
   const drawSelectionContainer = (ctx: CanvasRenderingContext2D) => {
-    if (isDragging) {
+    if (isDragging.current) {
       return;
     }
 
