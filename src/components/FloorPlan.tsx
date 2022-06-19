@@ -21,7 +21,6 @@ export const FloorPlan: FunctionComponent = () => {
   const [canvasElement, canvasRef] =
     useElementState<HTMLCanvasElement | null>();
 
-  const isDragging = useRef<boolean>(false);
   const selection = useRef<Selection | null>(null);
   const offset = useRef<Position>({ x: 0, y: 0 });
   const shapes = useRef<Shape[]>(mockShapes);
@@ -118,8 +117,9 @@ export const FloorPlan: FunctionComponent = () => {
     return shapesInSelectionArea;
   };
 
-  useDrag(canvasElement, {
-    onDragStart: ({ start }) => {
+  const { isDragging } = useDrag(canvasElement, {
+    onDragStart: ({ start, mouseButton }) => {
+      console.log("start: ", mouseButton);
       isDragging.current = true;
       setCursor(start);
       if (mode === Mode.Selection) {
@@ -141,7 +141,8 @@ export const FloorPlan: FunctionComponent = () => {
         }
       }
     },
-    onDrag: ({ start, end, delta }) => {
+    onDrag: ({ start, end, delta, mouseButton }) => {
+      console.log("drag: ", mouseButton);
       if (mode === Mode.Move) {
         offset.current = {
           x: offset.current.x + delta.x,
@@ -181,7 +182,8 @@ export const FloorPlan: FunctionComponent = () => {
         );
       }
     },
-    onDragEnd: ({ end }) => {
+    onDragEnd: ({ end, mouseButton }) => {
+      console.log("end: ", mouseButton);
       isDragging.current = false;
       setCursor(end);
       if (newShape.current) {
