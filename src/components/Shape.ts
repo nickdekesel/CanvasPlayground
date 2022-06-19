@@ -8,7 +8,8 @@ export abstract class Shape {
     public position: Position,
     public width: number,
     public height: number,
-    public fill: Color = "black"
+    public fill: Color = "black",
+    public image: ImageBitmap | undefined = undefined
   ) {}
 
   fixAbsoluteDimensions() {

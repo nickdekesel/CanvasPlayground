@@ -1,4 +1,4 @@
-import { FunctionComponent, useRef, useState } from "react";
+import { FunctionComponent, useCallback, useRef, useState } from "react";
 import { useDrag, Position } from "../hooks/useDrag";
 import { Canvas } from "./Canvas";
 import { Mode, ModesMenu } from "./menus/ModesMenu";
@@ -7,6 +7,7 @@ import { useElementState } from "../hooks/useElementState";
 import { areRectanglesOverlapping } from "../utils/rectangleUtils";
 import "./FloorPlan.scss";
 import { useHover } from "../hooks/useHover";
+import { useFileDrop } from "../hooks/useFileDrop";
 
 type Selection = { start: Position; end: Position };
 
@@ -119,7 +120,6 @@ export const FloorPlan: FunctionComponent = () => {
 
   const { isDragging } = useDrag(canvasElement, {
     onDragStart: ({ start, mouseButton }) => {
-      console.log("start: ", mouseButton);
       isDragging.current = true;
       setCursor(start);
       if (mode === Mode.Selection) {
@@ -182,7 +182,6 @@ export const FloorPlan: FunctionComponent = () => {
       }
     },
     onDragEnd: ({ end, mouseButton }) => {
-      console.log("end: ", mouseButton);
       isDragging.current = false;
       setCursor(end);
       if (newShape.current) {
@@ -198,6 +197,41 @@ export const FloorPlan: FunctionComponent = () => {
       selection.current = null;
     },
   });
+
+  useFileDrop(
+    canvasElement,
+    useCallback((event: DragEvent) => {
+      if (!event.dataTransfer?.files.length) {
+        return;
+      }
+
+      const files = event.dataTransfer.files;
+      for (let i = 0; i < files.length; i++) {
+        const file = files.item(i);
+        if (
+          file?.name.endsWith(".jpeg") ||
+          file?.name.endsWith(".jpg") ||
+          file?.name.endsWith(".png")
+        ) {
+          createImageBitmap(file).then((bitMap) => {
+            shapes.current.push(
+              new Rectangle(
+                String(shapes.current.length + 1),
+                getInverseOffsetPosition({
+                  x: event.clientX,
+                  y: event.clientY,
+                }),
+                bitMap.width / 5.0,
+                bitMap.height / 5.0,
+                "#000",
+                bitMap
+              )
+            );
+          });
+        }
+      }
+    }, [])
+  );
 
   const setDefaultCursor = () => {
     if (!canvasElement) {
@@ -265,8 +299,15 @@ export const FloorPlan: FunctionComponent = () => {
       const offsetPoint = getOffsetPosition(shape.position);
 
       const color = shape.fill;
-
-      if (shape instanceof Rectangle) {
+      if (shape.image != null) {
+        ctx.drawImage(
+          shape.image,
+          offsetPoint.x,
+          offsetPoint.y,
+          shape.width,
+          shape.height
+        );
+      } else if (shape instanceof Rectangle) {
         ctx.fillStyle = color;
         ctx.fillRect(offsetPoint.x, offsetPoint.y, shape.width, shape.height);
       } else if (shape instanceof Line) {
