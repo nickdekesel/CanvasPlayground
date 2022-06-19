@@ -142,7 +142,6 @@ export const FloorPlan: FunctionComponent = () => {
       }
     },
     onDrag: ({ start, end, delta, mouseButton }) => {
-      console.log("drag: ", mouseButton);
       if (mode === Mode.Move) {
         offset.current = {
           x: offset.current.x + delta.x,
