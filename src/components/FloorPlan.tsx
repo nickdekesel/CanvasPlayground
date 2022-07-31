@@ -3,11 +3,14 @@ import { useDrag, Position } from "../hooks/useDrag";
 import { Canvas } from "./Canvas";
 import { Mode, ModesMenu } from "./menus/ModesMenu";
 import { Line, Rectangle, Shape } from "./Shape";
-import { useElementState } from "../hooks/useElementState";
 import { areRectanglesOverlapping } from "../utils/rectangleUtils";
-import "./FloorPlan.scss";
 import { useHover } from "../hooks/useHover";
 import { useFileDrop } from "../hooks/useFileDrop";
+import { ContextMenuContainer } from "./contextMenu/ContextMenuContainer";
+import "./FloorPlan.scss";
+import { ContextMenu, MenuItem } from "./contextMenu/ContextMenu";
+import { DeleteIcon } from "../icons/DeleteIcon";
+import { GroupIcon } from "../icons/GroupIcon";
 
 type Selection = { start: Position; end: Position };
 
@@ -19,8 +22,8 @@ const mockShapes: Shape[] = [
 
 export const FloorPlan: FunctionComponent = () => {
   const [mode, setMode] = useState<Mode>(Mode.Selection);
-  const [canvasElement, canvasRef] =
-    useElementState<HTMLCanvasElement | null>();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasElement = canvasRef.current;
 
   const selection = useRef<Selection | null>(null);
   const offset = useRef<Position>({ x: 0, y: 0 });
@@ -395,10 +398,39 @@ export const FloorPlan: FunctionComponent = () => {
     drawSelection(ctx);
   };
 
+  const deleteSelectedItems = () => {
+    shapes.current = shapes.current.filter(
+      (s) => !selectedShapesIds.current.includes(s.id)
+    );
+  };
+
+  const groupSelectedItems = () => {
+    console.log("group");
+  };
+
   return (
     <>
       <Canvas ref={canvasRef} draw={draw} />
       <ModesMenu currentMode={mode} onModeChange={setMode} />
+      <ContextMenuContainer
+        elementRef={canvasRef}
+        contextMenu={
+          <ContextMenu>
+            <MenuItem
+              icon={GroupIcon}
+              label="Group selection"
+              shortcut="Ctrl+G"
+              onClick={groupSelectedItems}
+            />
+            <MenuItem
+              icon={DeleteIcon}
+              label="Delete"
+              shortcut="Delete"
+              onClick={deleteSelectedItems}
+            />
+          </ContextMenu>
+        }
+      />
     </>
   );
 };
