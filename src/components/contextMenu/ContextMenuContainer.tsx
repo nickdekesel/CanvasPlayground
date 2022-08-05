@@ -22,6 +22,7 @@ export const ContextMenuContainer: FunctionComponent<
   const contextMenuRef = useRef<HTMLElement>(null);
   const [contextMenuToShow, setContextMenuToShow] =
     useState<ReactElement | null>(null);
+
   useOnClickOutside(contextMenuRef, () => setContextMenuToShow(null));
 
   const getContextMenu = useCallback(

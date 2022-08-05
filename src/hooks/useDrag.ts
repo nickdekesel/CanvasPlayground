@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { RefObject, useEffect, useRef } from "react";
+import { getRelativePosition } from "../utils/getRelativePosition";
 
 export type Position = { x: number; y: number };
 export enum MouseButton {
@@ -20,7 +21,7 @@ export type DragOptions = {
 };
 
 export const useDrag = (
-  element: HTMLElement | null,
+  elementRef: RefObject<HTMLElement>,
   { onDrag, onDragStart, onDragEnd }: DragOptions
 ) => {
   const isDragging = useRef<boolean>(false);
@@ -28,8 +29,17 @@ export const useDrag = (
   const currentPosition = useRef<Position | null>(null);
 
   useEffect(() => {
+    const element = elementRef.current;
+    if (element === null) {
+      return;
+    }
+
     const handleMouseDown = (event: MouseEvent) => {
-      startPosition.current = { x: event.clientX, y: event.clientY };
+      startPosition.current = getRelativePosition(
+        element,
+        event.clientX,
+        event.clientY
+      );
       currentPosition.current = startPosition.current;
       isDragging.current = true;
       onDragStart?.({
@@ -62,9 +72,13 @@ export const useDrag = (
         return;
       }
 
-      const endPosition = { x: event.clientX, y: event.clientY };
-      const movedX = event.clientX - currentPosition.current.x;
-      const movedY = event.clientY - currentPosition.current.y;
+      const endPosition = getRelativePosition(
+        element,
+        event.clientX,
+        event.clientY
+      );
+      const movedX = endPosition.x - currentPosition.current.x;
+      const movedY = endPosition.y - currentPosition.current.y;
       const delta = { x: movedX, y: movedY };
 
       onDrag?.({
@@ -72,18 +86,18 @@ export const useDrag = (
         end: endPosition,
         delta,
       });
-      currentPosition.current = { x: event.clientX, y: event.clientY };
+      currentPosition.current = endPosition;
     };
 
-    element?.addEventListener("mousedown", handleMouseDown);
+    element.addEventListener("mousedown", handleMouseDown);
     window.addEventListener("mouseup", handleMouseUp);
     window.addEventListener("mousemove", handleMouseMove);
     return () => {
-      element?.removeEventListener("mousedown", handleMouseDown);
+      element.removeEventListener("mousedown", handleMouseDown);
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("mousemove", handleMouseMove);
     };
-  }, [element, onDrag, onDragStart, onDragEnd]);
+  }, [elementRef, onDrag, onDragStart, onDragEnd]);
 
   return { isDragging };
 };

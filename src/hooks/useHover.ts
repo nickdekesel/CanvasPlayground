@@ -1,18 +1,24 @@
-import { useEffect } from "react";
+import { RefObject, useEffect } from "react";
+import { getRelativePosition } from "../utils/getRelativePosition";
 import { Position } from "./useDrag";
 
 export const useHover = (
-  element: HTMLElement | null,
+  elementRef: RefObject<HTMLElement>,
   onHover: (position: Position) => void
 ) => {
   useEffect(() => {
+    const element = elementRef.current;
+    if (element == null) {
+      return;
+    }
+
     const handleMouseMove = (event: MouseEvent) => {
-      onHover({ x: event.clientX, y: event.clientY });
+      onHover(getRelativePosition(element, event.clientX, event.clientY));
     };
 
-    element?.addEventListener("mousemove", handleMouseMove);
+    element.addEventListener("mousemove", handleMouseMove);
     return () => {
-      element?.removeEventListener("mousemove", handleMouseMove);
+      element.removeEventListener("mousemove", handleMouseMove);
     };
-  }, [element, onHover]);
+  }, [elementRef, onHover]);
 };

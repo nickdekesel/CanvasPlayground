@@ -1,7 +1,7 @@
 import { FunctionComponent, useCallback, useRef, useState } from "react";
 import { useDrag, Position } from "../hooks/useDrag";
 import { Canvas } from "./Canvas";
-import { Mode, ModesMenu } from "./menus/ModesMenu";
+import { Mode, ModesMenu } from "./modesMenu/ModesMenu";
 import { Line, Rectangle, Shape } from "./Shape";
 import { areRectanglesOverlapping } from "../utils/rectangleUtils";
 import { useHover } from "../hooks/useHover";
@@ -23,7 +23,6 @@ const mockShapes: Shape[] = [
 export const FloorPlan: FunctionComponent = () => {
   const [mode, setMode] = useState<Mode>(Mode.Selection);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const canvasElement = canvasRef.current;
 
   const selection = useRef<Selection | null>(null);
   const offset = useRef<Position>({ x: 0, y: 0 });
@@ -121,7 +120,7 @@ export const FloorPlan: FunctionComponent = () => {
     return shapesInSelectionArea;
   };
 
-  const { isDragging } = useDrag(canvasElement, {
+  const { isDragging } = useDrag(canvasRef, {
     onDragStart: ({ start, mouseButton }) => {
       isDragging.current = true;
       setCursor(start);
@@ -202,7 +201,7 @@ export const FloorPlan: FunctionComponent = () => {
   });
 
   useFileDrop(
-    canvasElement,
+    canvasRef,
     useCallback((event: DragEvent) => {
       if (!event.dataTransfer?.files.length) {
         return;
@@ -237,6 +236,7 @@ export const FloorPlan: FunctionComponent = () => {
   );
 
   const setDefaultCursor = () => {
+    const canvasElement = canvasRef.current;
     if (!canvasElement) {
       return;
     }
@@ -253,6 +253,7 @@ export const FloorPlan: FunctionComponent = () => {
   };
 
   const setCursor = (position: Position) => {
+    const canvasElement = canvasRef.current;
     if (!canvasElement) {
       return;
     }
@@ -264,7 +265,7 @@ export const FloorPlan: FunctionComponent = () => {
     }
   };
 
-  useHover(canvasElement, setCursor);
+  useHover(canvasRef, setCursor);
 
   const drawGrid = (ctx: CanvasRenderingContext2D) => {
     const gap = 40;
@@ -409,7 +410,7 @@ export const FloorPlan: FunctionComponent = () => {
   };
 
   return (
-    <>
+    <div className="floor-plan">
       <Canvas ref={canvasRef} draw={draw} />
       <ModesMenu currentMode={mode} onModeChange={setMode} />
       <ContextMenuContainer
@@ -431,6 +432,6 @@ export const FloorPlan: FunctionComponent = () => {
           </ContextMenu>
         }
       />
-    </>
+    </div>
   );
 };
