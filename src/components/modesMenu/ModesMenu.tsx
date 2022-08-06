@@ -1,4 +1,4 @@
-import { FunctionComponent } from "react";
+import { FunctionComponent, MouseEvent } from "react";
 import { CursorIcon, MoveIcon, ShapesIcon } from "../../icons";
 import { MenuOption } from "./MenuOption";
 import "./ModesMenu.scss";
@@ -15,11 +15,13 @@ export enum Mode {
 type ModesMenuProps = {
   currentMode: Mode;
   onModeChange: (mode: Mode) => void;
+  onShapeDrag: (event: MouseEvent) => void;
 };
 
 export const ModesMenu: FunctionComponent<ModesMenuProps> = ({
   currentMode,
   onModeChange,
+  onShapeDrag,
 }) => {
   return (
     <div className="menu">
@@ -37,6 +39,7 @@ export const ModesMenu: FunctionComponent<ModesMenuProps> = ({
         icon={ShapesIcon}
         selected={currentMode === Mode.Rectangle}
         onClick={() => onModeChange(Mode.Rectangle)}
+        onMouseDown={onShapeDrag}
       />
     </div>
   );

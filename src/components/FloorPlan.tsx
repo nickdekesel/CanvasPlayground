@@ -1,4 +1,10 @@
-import { FunctionComponent, useCallback, useRef, useState } from "react";
+import {
+  FunctionComponent,
+  useCallback,
+  useRef,
+  useState,
+  MouseEvent,
+} from "react";
 import { useDrag, Position } from "../hooks/useDrag";
 import { Canvas } from "./Canvas";
 import { Mode, ModesMenu } from "./modesMenu/ModesMenu";
@@ -7,10 +13,10 @@ import { areRectanglesOverlapping } from "../utils/rectangleUtils";
 import { useHover } from "../hooks/useHover";
 import { useFileDrop } from "../hooks/useFileDrop";
 import { ContextMenuContainer } from "./contextMenu/ContextMenuContainer";
-import "./FloorPlan.scss";
 import { ContextMenu, MenuItem } from "./contextMenu/ContextMenu";
 import { DeleteIcon } from "../icons/DeleteIcon";
 import { GroupIcon } from "../icons/GroupIcon";
+import "./FloorPlan.scss";
 
 type Selection = { start: Position; end: Position };
 
@@ -112,7 +118,7 @@ export const FloorPlan: FunctionComponent = () => {
     return shapesInSelectionArea;
   };
 
-  const { isDragging } = useDrag(canvasRef, {
+  const { isDragging, triggerDrag } = useDrag(canvasRef, {
     onDragStart: ({ start, mouseButton }) => {
       isDragging.current = true;
       setCursor(start);
@@ -191,6 +197,11 @@ export const FloorPlan: FunctionComponent = () => {
       selection.current = null;
     },
   });
+
+  const handleShapeDrag = (event: MouseEvent) => {
+    setMode(Mode.Rectangle);
+    triggerDrag(event.nativeEvent);
+  };
 
   useFileDrop(
     canvasRef,
@@ -404,7 +415,11 @@ export const FloorPlan: FunctionComponent = () => {
   return (
     <div className="floor-plan">
       <Canvas ref={canvasRef} draw={draw} />
-      <ModesMenu currentMode={mode} onModeChange={setMode} />
+      <ModesMenu
+        currentMode={mode}
+        onModeChange={setMode}
+        onShapeDrag={handleShapeDrag}
+      />
       <ContextMenuContainer
         elementRef={canvasRef}
         contextMenu={

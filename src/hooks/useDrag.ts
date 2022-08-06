@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useRef } from "react";
+import { RefObject, useCallback, useEffect, useRef } from "react";
 import { getRelativePosition } from "../utils/getRelativePosition";
 
 export type Position = { x: number; y: number };
@@ -28,14 +28,14 @@ export const useDrag = (
   const startPosition = useRef<Position | null>(null);
   const currentPosition = useRef<Position | null>(null);
 
-  useEffect(() => {
-    const element = elementRef.current;
-    if (element === null) {
-      return;
-    }
-
-    const handleMouseDown = (event: MouseEvent) => {
+  const handleDragStart = useCallback(
+    (event: MouseEvent) => {
       event.preventDefault();
+      const element = elementRef.current;
+      if (element == null) {
+        return;
+      }
+
       startPosition.current = getRelativePosition(
         element,
         event.clientX,
@@ -49,6 +49,18 @@ export const useDrag = (
         delta: { x: 0, y: 0 },
         mouseButton: event.button,
       });
+    },
+    [elementRef, onDragStart]
+  );
+
+  useEffect(() => {
+    const element = elementRef.current;
+    if (element === null) {
+      return;
+    }
+
+    const handleMouseDown = (event: MouseEvent) => {
+      handleDragStart(event);
     };
 
     const handleMouseUp = (event: MouseEvent) => {
@@ -98,7 +110,7 @@ export const useDrag = (
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("mousemove", handleMouseMove);
     };
-  }, [elementRef, onDrag, onDragStart, onDragEnd]);
+  }, [elementRef, onDrag, handleDragStart, onDragEnd]);
 
-  return { isDragging };
+  return { isDragging, triggerDrag: handleDragStart };
 };
