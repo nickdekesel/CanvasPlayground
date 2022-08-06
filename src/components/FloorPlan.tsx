@@ -53,18 +53,10 @@ export const FloorPlan: FunctionComponent = () => {
     for (let shape of selectedShapes) {
       const { x, y } = getOffsetPosition(shape.position);
 
-      if (minX == null || x < minX) {
-        minX = x;
-      }
-      if (minY == null || y < minY) {
-        minY = y;
-      }
-      if (maxX == null || x + shape.width > maxX) {
-        maxX = x + shape.width;
-      }
-      if (maxY == null || y + shape.height > maxY) {
-        maxY = y + shape.height;
-      }
+      minX = minX ? Math.min(minX, x) : x;
+      minY = minY ? Math.min(minY, y) : y;
+      maxX = maxX ? Math.max(maxX, x + shape.width) : x + shape.width;
+      maxY = maxY ? Math.max(maxY, y + shape.height) : y + shape.height;
     }
 
     if (minX == null || maxX == null || minY == null || maxY == null) {
