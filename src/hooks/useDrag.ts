@@ -35,6 +35,7 @@ export const useDrag = (
     }
 
     const handleMouseDown = (event: MouseEvent) => {
+      event.preventDefault();
       startPosition.current = getRelativePosition(
         element,
         event.clientX,
