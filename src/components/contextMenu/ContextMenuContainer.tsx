@@ -51,7 +51,6 @@ export const ContextMenuContainer: FunctionComponent<
     (event: MouseEvent) => {
       event.preventDefault();
       const menu = getContextMenu(event);
-      console.log(menu);
       setContextMenuToShow(menu);
     },
     [getContextMenu]
