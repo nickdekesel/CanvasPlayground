@@ -5,7 +5,7 @@ import {
   useState,
   MouseEvent,
 } from "react";
-import { useDrag, Position } from "../hooks/useDrag";
+import { useDrag, Position, MouseButton } from "../hooks/useDrag";
 import { Canvas } from "./Canvas";
 import { Mode, ModesMenu } from "./modesMenu/ModesMenu";
 import { Line, Rectangle, Shape } from "./Shape";
@@ -28,6 +28,7 @@ const mockShapes: Shape[] = [
 
 export const FloorPlan: FunctionComponent = () => {
   const [mode, setMode] = useState<Mode>(Mode.Selection);
+  const previousMode = useRef<Mode>(mode);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const selection = useRef<Selection | null>(null);
@@ -121,8 +122,16 @@ export const FloorPlan: FunctionComponent = () => {
   const { isDragging, triggerDrag } = useDrag(canvasRef, {
     onDragStart: ({ start, mouseButton }) => {
       isDragging.current = true;
-      setCursor(start);
-      if (mode === Mode.Selection) {
+      previousMode.current = mode;
+      let dragMode = mode;
+
+      if (mouseButton === MouseButton.Middle) {
+        dragMode = Mode.Move;
+        setMode(dragMode);
+      }
+
+      setCursor(start, dragMode);
+      if (dragMode === Mode.Selection) {
         const hoveringOverSelection = isHoveringOverSelection(start);
 
         if (hoveringOverSelection) {
@@ -183,7 +192,10 @@ export const FloorPlan: FunctionComponent = () => {
     },
     onDragEnd: ({ end, mouseButton }) => {
       isDragging.current = false;
-      setCursor(end);
+
+      setMode(previousMode.current);
+
+      setCursor(end, previousMode.current);
       if (newShape.current) {
         newShape.current.fixAbsoluteDimensions();
         shapes.current = [...shapes.current, newShape.current];
@@ -238,7 +250,7 @@ export const FloorPlan: FunctionComponent = () => {
     }, [])
   );
 
-  const setDefaultCursor = () => {
+  const setDefaultCursor = (mode: Mode) => {
     const canvasElement = canvasRef.current;
     if (!canvasElement) {
       return;
@@ -255,7 +267,7 @@ export const FloorPlan: FunctionComponent = () => {
     }
   };
 
-  const setCursor = (position: Position) => {
+  const setCursor = (position: Position, mode: Mode) => {
     const canvasElement = canvasRef.current;
     if (!canvasElement) {
       return;
@@ -264,11 +276,11 @@ export const FloorPlan: FunctionComponent = () => {
     if (mode === Mode.Selection && isHoveringOverSelection(position)) {
       canvasElement.style.cursor = "move";
     } else {
-      setDefaultCursor();
+      setDefaultCursor(mode);
     }
   };
 
-  useHover(canvasRef, setCursor);
+  useHover(canvasRef, (position: Position) => setCursor(position, mode));
 
   const drawGrid = (ctx: CanvasRenderingContext2D) => {
     const gap = 40;
