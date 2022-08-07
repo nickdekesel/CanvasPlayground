@@ -1,4 +1,4 @@
-import { Rectangle } from "../components/Shape";
+import { Rectangle } from "../models/Shape";
 
 export const areRectanglesOverlapping = (a: Rectangle, b: Rectangle) => {
   const [aLeft, aTop, aRight, aBottom] = getSidesPositions(a);

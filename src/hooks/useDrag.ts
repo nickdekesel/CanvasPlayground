@@ -1,7 +1,6 @@
 import { RefObject, useCallback, useEffect, useRef } from "react";
-import { getRelativePosition } from "../utils/getRelativePosition";
+import { getRelativePosition, Position } from "../utils/positionUtils";
 
-export type Position = { x: number; y: number };
 export enum MouseButton {
   Left,
   Middle,

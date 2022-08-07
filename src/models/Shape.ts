@@ -1,4 +1,4 @@
-import { Position } from "../hooks/useDrag";
+import { Position } from "../utils/positionUtils";
 
 type Color = string | "red" | "blue" | "green";
 

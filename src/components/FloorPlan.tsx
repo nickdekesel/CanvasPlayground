@@ -5,10 +5,10 @@ import {
   useState,
   MouseEvent,
 } from "react";
-import { useDrag, Position, MouseButton } from "../hooks/useDrag";
+import { useDrag, MouseButton } from "../hooks/useDrag";
 import { Canvas } from "./Canvas";
 import { Mode, ModesMenu } from "./modesMenu/ModesMenu";
-import { Line, Rectangle, Shape } from "./Shape";
+import { Line, Rectangle, Shape } from "../models/Shape";
 import { areRectanglesOverlapping } from "../utils/rectangleUtils";
 import { useHover } from "../hooks/useHover";
 import { useFileDrop } from "../hooks/useFileDrop";
@@ -16,9 +16,10 @@ import { ContextMenuContainer } from "./contextMenu/ContextMenuContainer";
 import { ContextMenu, MenuItem } from "./contextMenu/ContextMenu";
 import { DeleteIcon } from "../icons/DeleteIcon";
 import { GroupIcon } from "../icons/GroupIcon";
+import { getInverseOffsetPosition, Position } from "../utils/positionUtils";
+import { draw as drawFloorPlan } from "./drawFoorPlan";
+import { getSelectionContainer, Selection } from "../utils/selectionUtils";
 import "./FloorPlan.scss";
-
-type Selection = { start: Position; end: Position };
 
 const mockShapes: Shape[] = [
   new Rectangle("0", { x: 200, y: 400 }, 200, 200, "#FF0000"),
@@ -39,48 +40,6 @@ export const FloorPlan: FunctionComponent = () => {
 
   const newShape = useRef<Shape | null>(null);
 
-  const getOffsetPosition = (position: Position) => ({
-    x: offset.current.x + position.x,
-    y: offset.current.y + position.y,
-  });
-
-  const getInverseOffsetPosition = (position: Position) => ({
-    x: position.x - offset.current.x,
-    y: position.y - offset.current.y,
-  });
-
-  const getSelectionContainer = (): Rectangle | null => {
-    const selectedShapes = shapes.current.filter((s) =>
-      selectedShapesIds.current.includes(s.id)
-    );
-
-    const margin = 2;
-
-    let minX, maxX, minY, maxY;
-    for (let shape of selectedShapes) {
-      const { x, y } = getOffsetPosition(shape.position);
-
-      minX = minX ? Math.min(minX, x) : x;
-      minY = minY ? Math.min(minY, y) : y;
-      maxX = maxX ? Math.max(maxX, x + shape.width) : x + shape.width;
-      maxY = maxY ? Math.max(maxY, y + shape.height) : y + shape.height;
-    }
-
-    if (minX == null || maxX == null || minY == null || maxY == null) {
-      return null;
-    }
-
-    return new Rectangle(
-      "selection-area",
-      {
-        x: minX - margin,
-        y: minY - margin,
-      },
-      maxX - minX + 2 * margin,
-      maxY - minY + 2 * margin
-    );
-  };
-
   const findHoverOverShape = (position: Position): Shape | null => {
     for (let i = shapes.current.length - 1; i >= 0; i--) {
       const shape = shapes.current[i];
@@ -92,7 +51,11 @@ export const FloorPlan: FunctionComponent = () => {
   };
 
   const isHoveringOverSelection = (position: Position): boolean => {
-    const selectionContainer = getSelectionContainer();
+    const selectionContainer = getSelectionContainer(
+      shapes.current,
+      selectedShapesIds.current,
+      offset.current
+    );
     return !!selectionContainer?.isInside(position);
   };
 
@@ -104,7 +67,7 @@ export const FloorPlan: FunctionComponent = () => {
     const { start, end } = selection.current;
     const selectionArea = new Rectangle(
       "selection",
-      getInverseOffsetPosition(start),
+      getInverseOffsetPosition(start, offset.current),
       end.x - start.x,
       end.y - start.y
     );
@@ -139,7 +102,7 @@ export const FloorPlan: FunctionComponent = () => {
         }
 
         const hoverOverShape = findHoverOverShape(
-          getInverseOffsetPosition(start)
+          getInverseOffsetPosition(start, offset.current)
         );
         if (hoverOverShape) {
           if (!selectedShapesIds.current.includes(hoverOverShape.id)) {
@@ -175,7 +138,7 @@ export const FloorPlan: FunctionComponent = () => {
       } else if (mode === Mode.Line) {
         newShape.current = new Line(
           String(shapes.current.length + 1),
-          getInverseOffsetPosition(start),
+          getInverseOffsetPosition(start, offset.current),
           end.x - start.x,
           end.y - start.y,
           "#00FF00"
@@ -183,7 +146,7 @@ export const FloorPlan: FunctionComponent = () => {
       } else if (mode === Mode.Rectangle) {
         newShape.current = new Rectangle(
           String(shapes.current.length + 1),
-          getInverseOffsetPosition(start),
+          getInverseOffsetPosition(start, offset.current),
           end.x - start.x,
           end.y - start.y,
           "#00FF00"
@@ -234,10 +197,13 @@ export const FloorPlan: FunctionComponent = () => {
             shapes.current.push(
               new Rectangle(
                 String(shapes.current.length + 1),
-                getInverseOffsetPosition({
-                  x: event.clientX,
-                  y: event.clientY,
-                }),
+                getInverseOffsetPosition(
+                  {
+                    x: event.clientX,
+                    y: event.clientY,
+                  },
+                  offset.current
+                ),
                 bitMap.width / 5.0,
                 bitMap.height / 5.0,
                 "#000",
@@ -282,137 +248,17 @@ export const FloorPlan: FunctionComponent = () => {
 
   useHover(canvasRef, (position: Position) => setCursor(position, mode));
 
-  const drawGrid = (ctx: CanvasRenderingContext2D) => {
-    const gap = 40;
-    const width = ctx.canvas.clientWidth;
-    const height = ctx.canvas.clientHeight;
-
-    ctx.beginPath();
-    ctx.strokeStyle = "#f4f4f4";
-    ctx.lineWidth = 1;
-
-    // draw vertical grid lines
-    const startX = offset.current.x % gap;
-    for (let x = startX; x < width; x += gap) {
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
-    }
-
-    // draw horizontal grid lines
-    const startY = offset.current.y % gap;
-    for (let y = startY; y < height; y += gap) {
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
-    }
-    ctx.stroke();
-  };
-
-  const drawShapes = (ctx: CanvasRenderingContext2D) => {
-    const allShapes: Shape[] = [...shapes.current];
-    if (newShape.current) {
-      allShapes.push(newShape.current);
-    }
-
-    for (let shape of allShapes) {
-      ctx.beginPath();
-      const offsetPoint = getOffsetPosition(shape.position);
-
-      const color = shape.fill;
-      if (shape.image != null) {
-        ctx.drawImage(
-          shape.image,
-          offsetPoint.x,
-          offsetPoint.y,
-          shape.width,
-          shape.height
-        );
-      } else if (shape instanceof Rectangle) {
-        ctx.fillStyle = color;
-        ctx.fillRect(offsetPoint.x, offsetPoint.y, shape.width, shape.height);
-      } else if (shape instanceof Line) {
-        ctx.strokeStyle = color;
-        ctx.setLineDash([]);
-        ctx.moveTo(offsetPoint.x, offsetPoint.y);
-        ctx.lineTo(offsetPoint.x + shape.width, offsetPoint.y + shape.height);
-        ctx.stroke();
-      }
-
-      if (
-        selectedShapesIds.current.includes(shape.id) ||
-        shapeIdsToSelect.current.includes(shape.id)
-      ) {
-        drawShapeSelection(shape, ctx);
-      }
-    }
-  };
-
-  const drawSelectionArea = (ctx: CanvasRenderingContext2D) => {
-    if (selection.current == null) {
-      return;
-    }
-
-    const { start, end } = selection.current;
-    const width = end.x - start.x;
-    const height = end.y - start.y;
-
-    ctx.beginPath();
-    ctx.globalAlpha = 0.2;
-    ctx.fillStyle = "#3399ff";
-    ctx.fillRect(start.x, start.y, width, height);
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = "#0000ff";
-    ctx.lineWidth = 1;
-    ctx.setLineDash([]);
-    ctx.strokeRect(start.x, start.y, width, height);
-  };
-
-  const drawSelectionContainer = (ctx: CanvasRenderingContext2D) => {
-    if (isDragging.current || selectedShapesIds.current.length <= 1) {
-      return;
-    }
-
-    const container = getSelectionContainer();
-
-    if (container == null) {
-      return;
-    }
-
-    ctx.beginPath();
-    ctx.setLineDash([5, 5]);
-    ctx.strokeStyle = "#000";
-    ctx.strokeRect(
-      container.position.x,
-      container.position.y,
-      container.width,
-      container.height
+  const draw = (ctx: CanvasRenderingContext2D) =>
+    drawFloorPlan(
+      ctx,
+      shapes.current,
+      newShape.current,
+      selectedShapesIds.current,
+      shapeIdsToSelect.current,
+      selection.current,
+      offset.current,
+      isDragging.current
     );
-  };
-
-  const drawShapeSelection = (shape: Shape, ctx: CanvasRenderingContext2D) => {
-    const margin = 2;
-    const { x, y } = getOffsetPosition(shape.position);
-
-    ctx.beginPath();
-    ctx.setLineDash([10, 5]);
-    ctx.strokeStyle = "#000";
-    ctx.strokeRect(
-      x - margin,
-      y - margin,
-      shape.width + 2 * margin,
-      shape.height + 2 * margin
-    );
-  };
-
-  const drawSelection = (ctx: CanvasRenderingContext2D) => {
-    drawSelectionArea(ctx);
-    drawSelectionContainer(ctx);
-  };
-
-  const draw = (ctx: CanvasRenderingContext2D) => {
-    drawGrid(ctx);
-    drawShapes(ctx);
-    drawSelection(ctx);
-  };
 
   const deleteSelectedItems = () => {
     shapes.current = shapes.current.filter(

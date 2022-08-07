@@ -1,6 +1,5 @@
 import { RefObject, useEffect } from "react";
-import { getRelativePosition } from "../utils/getRelativePosition";
-import { Position } from "./useDrag";
+import { getRelativePosition, Position } from "../utils/positionUtils";
 
 export const useHover = (
   elementRef: RefObject<HTMLElement>,
