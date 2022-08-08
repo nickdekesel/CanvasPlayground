@@ -64,9 +64,14 @@ const drawShapes = (
       ctx.stroke();
     } else if (shape instanceof Circle) {
       ctx.fillStyle = color;
-      const { x, y } = shape.getCenter();
       const radius = shape.getRadius();
-      ctx.arc(x, y, radius, 0, 2 * Math.PI);
+      ctx.arc(
+        offsetPoint.x + shape.width / 2,
+        offsetPoint.y + shape.height / 2,
+        radius,
+        0,
+        2 * Math.PI
+      );
       ctx.fill();
     }
 
