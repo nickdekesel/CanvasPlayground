@@ -1,4 +1,4 @@
-import { Line, Rectangle, Shape } from "../models/Shape";
+import { Circle, Line, Rectangle, Shape } from "../models/Shape";
 import { getOffsetPosition, Position } from "../utils/positionUtils";
 import { getSelectionContainer, Selection } from "../utils/selectionUtils";
 
@@ -62,6 +62,12 @@ const drawShapes = (
       ctx.moveTo(offsetPoint.x, offsetPoint.y);
       ctx.lineTo(offsetPoint.x + shape.width, offsetPoint.y + shape.height);
       ctx.stroke();
+    } else if (shape instanceof Circle) {
+      ctx.fillStyle = color;
+      const { x, y } = shape.getCenter();
+      const radius = shape.getRadius();
+      ctx.arc(x, y, radius, 0, 2 * Math.PI);
+      ctx.fill();
     }
 
     if (

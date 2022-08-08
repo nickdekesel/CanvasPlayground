@@ -79,3 +79,27 @@ export class Line extends Shape {
     return true;
   }
 }
+
+export class Circle extends Shape {
+  isInside(position: Position): boolean {
+    const radius = this.getRadius();
+    const { x, y } = this.getCenter();
+
+    const dx = Math.abs(position.x - x);
+    const dy = Math.abs(position.y - y);
+
+    return dx * dx + dy * dy <= radius * radius;
+  }
+
+  getCenter(): Position {
+    const radius = this.getRadius();
+    const centerX = this.position.x + radius;
+    const centerY = this.position.y + radius;
+    return { x: centerX, y: centerY };
+  }
+
+  getRadius(): number {
+    const radius = this.width / 2;
+    return radius;
+  }
+}

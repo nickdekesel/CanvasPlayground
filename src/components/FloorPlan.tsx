@@ -8,7 +8,7 @@ import {
 import { useDrag, MouseButton } from "../hooks/useDrag";
 import { Canvas } from "./Canvas";
 import { Mode, ModesMenu } from "./modesMenu/ModesMenu";
-import { Line, Rectangle, Shape } from "../models/Shape";
+import { Circle, Line, Rectangle, Shape } from "../models/Shape";
 import { areRectanglesOverlapping } from "../utils/rectangleUtils";
 import { useHover } from "../hooks/useHover";
 import { useFileDrop } from "../hooks/useFileDrop";
@@ -25,6 +25,7 @@ const mockShapes: Shape[] = [
   new Rectangle("0", { x: 200, y: 400 }, 200, 200, "#FF0000"),
   new Rectangle("1", { x: 500, y: 600 }, 300, 200, "#00FF00"),
   new Line("2", { x: 100, y: 200 }, 100, 100, "#FF0000"),
+  new Circle("3", { x: 600, y: 300 }, 200, 200, "#0000FF"),
 ];
 
 export const FloorPlan: FunctionComponent = () => {
