@@ -99,7 +99,7 @@ export class Circle extends Shape {
   }
 
   getRadius(): number {
-    const radius = this.width / 2;
+    const radius = Math.abs(this.width / 2);
     return radius;
   }
 }

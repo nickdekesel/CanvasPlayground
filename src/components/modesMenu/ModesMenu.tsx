@@ -37,8 +37,8 @@ export const ModesMenu: FunctionComponent<ModesMenuProps> = ({
       />
       <MenuOption
         icon={ShapesIcon}
-        selected={currentMode === Mode.Rectangle}
-        onClick={() => onModeChange(Mode.Rectangle)}
+        selected={currentMode === Mode.Circle}
+        onClick={() => onModeChange(Mode.Circle)}
         onMouseDown={onShapeDrag}
       />
     </div>

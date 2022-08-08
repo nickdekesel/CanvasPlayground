@@ -152,6 +152,15 @@ export const FloorPlan: FunctionComponent = () => {
           end.y - start.y,
           "#00FF00"
         );
+      } else if (mode === Mode.Circle) {
+        const diameter = end.x - start.x;
+        newShape.current = new Circle(
+          String(shapes.current.length + 1),
+          getInverseOffsetPosition(start, offset.current),
+          diameter,
+          diameter,
+          "#0000FF"
+        );
       }
     },
     onDragEnd: ({ end, mouseButton }) => {
@@ -175,7 +184,7 @@ export const FloorPlan: FunctionComponent = () => {
   });
 
   const handleShapeDrag = (event: MouseEvent) => {
-    setMode(Mode.Rectangle);
+    setMode(Mode.Circle);
     triggerDrag(event.nativeEvent);
   };
 
