@@ -7,7 +7,7 @@ import {
   ReactElement,
   ReactNode,
 } from "react";
-import { IconProps } from "../../icons/Icon";
+import { IconProps } from "icons/Icon";
 import "./ContextMenu.scss";
 
 type ContextMenuProps = {

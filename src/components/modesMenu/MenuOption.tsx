@@ -1,5 +1,5 @@
 import { FunctionComponent, MouseEvent } from "react";
-import { IconProps } from "../../icons/Icon";
+import { IconProps } from "icons/Icon";
 
 type MenuOptionProps = {
   icon: FunctionComponent<IconProps>;

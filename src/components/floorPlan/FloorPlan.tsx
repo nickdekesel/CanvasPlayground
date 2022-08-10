@@ -1,24 +1,18 @@
-import {
-  FunctionComponent,
-  useCallback,
-  useRef,
-  useState,
-  MouseEvent,
-} from "react";
-import { useDrag, MouseButton } from "../hooks/useDrag";
-import { Canvas } from "./Canvas";
-import { Mode, ModesMenu } from "./modesMenu/ModesMenu";
-import { Circle, Line, Rectangle, Shape } from "../models/Shape";
-import { areRectanglesOverlapping } from "../utils/rectangleUtils";
-import { useHover } from "../hooks/useHover";
-import { useFileDrop } from "../hooks/useFileDrop";
-import { ContextMenuContainer } from "./contextMenu/ContextMenuContainer";
-import { ContextMenu, MenuItem } from "./contextMenu/ContextMenu";
-import { DeleteIcon } from "../icons/DeleteIcon";
-import { GroupIcon } from "../icons/GroupIcon";
-import { getInverseOffsetPosition, Position } from "../utils/positionUtils";
+import { FunctionComponent, useCallback, useRef, useState } from "react";
+import { useFloating, shift, flip } from "@floating-ui/react-dom";
+import { Circle, Line, Rectangle, Shape } from "models/Shape";
+import { areRectanglesOverlapping } from "utils/rectangleUtils";
+import { useDrag, MouseButton } from "hooks/useDrag";
+import { useHover } from "hooks/useHover";
+import { useFileDrop } from "hooks/useFileDrop";
+import { useCombinedRefs } from "hooks/useCombinedRefs";
+import { getInverseOffsetPosition, Position } from "utils/positionUtils";
+import { getSelectionContainer, Selection } from "utils/selectionUtils";
+import { Canvas } from "components/Canvas";
+import { Mode, ModesMenu } from "components/modesMenu/ModesMenu";
+import { useContextMenu } from "components/contextMenu/useContextMenu";
 import { draw as drawFloorPlan } from "./drawFoorPlan";
-import { getSelectionContainer, Selection } from "../utils/selectionUtils";
+import { FloorPlanContextMenu } from "./FloorPlanContextMenu";
 import "./FloorPlan.scss";
 
 const mockShapes: Shape[] = [
@@ -185,7 +179,7 @@ export const FloorPlan: FunctionComponent = () => {
 
   const handleShapeDrag = (event: MouseEvent) => {
     setMode(Mode.Circle);
-    triggerDrag(event.nativeEvent);
+    triggerDrag(event);
   };
 
   useFileDrop(
@@ -274,11 +268,58 @@ export const FloorPlan: FunctionComponent = () => {
     shapes.current = shapes.current.filter(
       (s) => !selectedShapesIds.current.includes(s.id)
     );
+    setShowContextMenu(false);
   };
 
   const groupSelectedItems = () => {
     console.log("group");
+    setShowContextMenu(false);
   };
+
+  const [showContextMenu, setShowContextMenu] = useState(false);
+  const {
+    x: contextMenuX,
+    y: contextMenuY,
+    reference,
+    floating: floatingContextMenuRef,
+    strategy,
+  } = useFloating({
+    placement: "bottom-start",
+    middleware: [shift(), flip()],
+  });
+
+  const handleShowContextMenu = useCallback(
+    (event: MouseEvent) => {
+      const { clientX, clientY } = event;
+      reference({
+        getBoundingClientRect() {
+          return {
+            width: 0,
+            height: 0,
+            x: clientX,
+            y: clientY,
+            top: clientY,
+            left: clientX,
+            right: clientX,
+            bottom: clientY,
+          };
+        },
+      });
+      setShowContextMenu(true);
+    },
+    [reference]
+  );
+
+  const { reference: contextMenuRef } = useContextMenu(
+    canvasRef,
+    handleShowContextMenu,
+    () => setShowContextMenu(false)
+  );
+
+  const contextMenuRefs = useCombinedRefs<HTMLDivElement>([
+    contextMenuRef,
+    floatingContextMenuRef,
+  ]);
 
   return (
     <div className="floor-plan">
@@ -288,25 +329,19 @@ export const FloorPlan: FunctionComponent = () => {
         onModeChange={setMode}
         onShapeDrag={handleShapeDrag}
       />
-      <ContextMenuContainer
-        elementRef={canvasRef}
-        contextMenu={
-          <ContextMenu>
-            <MenuItem
-              icon={GroupIcon}
-              label="Group selection"
-              shortcut="Ctrl+G"
-              onClick={groupSelectedItems}
-            />
-            <MenuItem
-              icon={DeleteIcon}
-              label="Delete"
-              shortcut="Delete"
-              onClick={deleteSelectedItems}
-            />
-          </ContextMenu>
-        }
-      />
+
+      {showContextMenu && (
+        <FloorPlanContextMenu
+          ref={contextMenuRefs}
+          style={{
+            position: strategy,
+            top: contextMenuY ?? 0,
+            left: contextMenuX ?? 0,
+          }}
+          groupSelectedItems={groupSelectedItems}
+          deleteSelectedItems={deleteSelectedItems}
+        />
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
-import { FunctionComponent, MouseEvent } from "react";
-import { CursorIcon, MoveIcon, ShapesIcon } from "../../icons";
+import { FunctionComponent } from "react";
+import { CursorIcon, MoveIcon, ShapesIcon } from "icons";
 import { MenuOption } from "./MenuOption";
 import "./ModesMenu.scss";
 
@@ -39,7 +39,7 @@ export const ModesMenu: FunctionComponent<ModesMenuProps> = ({
         icon={ShapesIcon}
         selected={currentMode === Mode.Circle}
         onClick={() => onModeChange(Mode.Circle)}
-        onMouseDown={onShapeDrag}
+        onMouseDown={(event) => onShapeDrag(event.nativeEvent)}
       />
     </div>
   );

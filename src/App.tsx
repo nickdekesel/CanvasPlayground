@@ -1,6 +1,6 @@
 import React, { FunctionComponent } from "react";
-import { FloorPlan } from "./components/FloorPlan";
-import { SidePanel } from "./components/sidePanel/SidePanel";
+import { FloorPlan } from "components/floorPlan/FloorPlan";
+import { SidePanel } from "components/sidePanel/SidePanel";
 import "./App.scss";
 
 const App: FunctionComponent = () => {

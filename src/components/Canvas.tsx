@@ -1,6 +1,6 @@
 import { forwardRef, useRef } from "react";
-import { useCanvas } from "../hooks/useCanvas";
-import { useCombinedRefs } from "../hooks/useCombinedRefs";
+import { useCanvas } from "hooks/useCanvas";
+import { useCombinedRefs } from "hooks/useCombinedRefs";
 import "./Canvas.scss";
 
 type CanvasProps = {

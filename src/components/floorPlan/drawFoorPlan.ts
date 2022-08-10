@@ -1,6 +1,6 @@
-import { Circle, Line, Rectangle, Shape } from "../models/Shape";
-import { getOffsetPosition, Position } from "../utils/positionUtils";
-import { getSelectionContainer, Selection } from "../utils/selectionUtils";
+import { Circle, Line, Rectangle, Shape } from "../../models/Shape";
+import { getOffsetPosition, Position } from "../../utils/positionUtils";
+import { getSelectionContainer, Selection } from "../../utils/selectionUtils";
 
 const drawGrid = (ctx: CanvasRenderingContext2D, offset: Position) => {
   const gap = 40;
