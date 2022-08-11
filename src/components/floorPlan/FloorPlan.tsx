@@ -16,6 +16,7 @@ import { FloorPlanContextMenu } from "./FloorPlanContextMenu";
 import "./FloorPlan.scss";
 import { ObjectsMenu } from "components/floorPlan/menus/ObjectsMenu";
 import { MenusOverlay } from "./menus/MenusOverlay";
+import { ObjectType } from "./objects";
 
 const mockShapes: Shape[] = [
   new Rectangle("0", { x: 200, y: 400 }, 200, 200, ["#FF0000"]),
@@ -323,9 +324,9 @@ export const FloorPlan: FunctionComponent = () => {
     floatingContextMenuRef,
   ]);
 
-  const handleLampClick = () => {
+  const handleAddObject = (object: ObjectType) => {
     const image = new Image();
-    image.src = "images/lamp.png";
+    image.src = object.image;
     image.onload = () => {
       shapes.current = [
         ...shapes.current,
@@ -350,7 +351,7 @@ export const FloorPlan: FunctionComponent = () => {
           onModeChange={setMode}
           onShapeDrag={handleShapeDrag}
         />
-        <ObjectsMenu onLampClick={handleLampClick} />
+        <ObjectsMenu onAddObject={handleAddObject} />
       </MenusOverlay>
 
       {showContextMenu && (
