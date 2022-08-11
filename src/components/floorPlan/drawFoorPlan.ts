@@ -51,6 +51,7 @@ const drawShapes = (
         ctx.fillRect(offsetPoint.x, offsetPoint.y, shape.width, shape.height);
       } else if (shape instanceof Line) {
         ctx.strokeStyle = colors[0];
+        ctx.lineWidth = 1;
         ctx.setLineDash([]);
         ctx.moveTo(offsetPoint.x, offsetPoint.y);
         ctx.lineTo(offsetPoint.x + shape.width, offsetPoint.y + shape.height);
@@ -65,6 +66,8 @@ const drawShapes = (
         const borderColor = colors.length >= 2 ? colors[1] : null;
         if (borderColor) {
           ctx.strokeStyle = borderColor;
+          ctx.lineWidth = 2;
+          ctx.setLineDash([]);
           ctx.arc(x, y, radius, 0, 2 * Math.PI);
           ctx.stroke();
         }
@@ -132,6 +135,7 @@ const drawSelectionContainer = (
   }
 
   ctx.beginPath();
+  ctx.lineWidth = 1;
   ctx.setLineDash([5, 5]);
   ctx.strokeStyle = "#000";
   ctx.strokeRect(
@@ -151,6 +155,7 @@ const drawShapeSelection = (
   const { x, y } = getOffsetPosition(shape.position, offset);
 
   ctx.beginPath();
+  ctx.lineWidth = 1;
   ctx.setLineDash([10, 5]);
   ctx.strokeStyle = "#000";
   ctx.strokeRect(

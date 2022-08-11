@@ -13,17 +13,17 @@ import { Mode, ModesMenu } from "components/floorPlan/menus/ModesMenu";
 import { useContextMenu } from "components/contextMenu/useContextMenu";
 import { draw as drawFloorPlan } from "./drawFoorPlan";
 import { FloorPlanContextMenu } from "./FloorPlanContextMenu";
-import "./FloorPlan.scss";
 import { ObjectsMenu } from "components/floorPlan/menus/ObjectsMenu";
 import { MenusOverlay } from "./menus/MenusOverlay";
 import { ObjectType } from "./objects";
+import "./FloorPlan.scss";
 
-const mockShapes: Shape[] = [
-  new Rectangle("0", { x: 200, y: 400 }, 200, 200, ["#FF0000"]),
-  new Rectangle("1", { x: 500, y: 600 }, 300, 200, ["#00FF00"]),
-  new Line("2", { x: 100, y: 200 }, 100, 100, ["#FF0000"]),
-  new Circle("3", { x: 600, y: 300 }, 200, 200, ["#0000FF"]),
-];
+// const mockShapes: Shape[] = [
+//   new Rectangle("0", { x: 200, y: 400 }, 200, 200, ["#FF0000"]),
+//   new Rectangle("1", { x: 500, y: 600 }, 300, 200, ["#00FF00"]),
+//   new Line("2", { x: 100, y: 200 }, 100, 100, ["#FF0000"]),
+//   new Circle("3", { x: 600, y: 300 }, 200, 200, ["#0000FF"]),
+// ];
 
 export const FloorPlan: FunctionComponent = () => {
   const [mode, setMode] = useState<Mode>(Mode.Selection);
@@ -32,7 +32,7 @@ export const FloorPlan: FunctionComponent = () => {
 
   const selection = useRef<Selection | null>(null);
   const offset = useRef<Position>({ x: 0, y: 0 });
-  const shapes = useRef<Shape[]>(mockShapes);
+  const shapes = useRef<Shape[]>([]);
   const selectedShapesIds = useRef<string[]>([]);
   const shapeIdsToSelect = useRef<string[]>([]);
 
@@ -324,7 +324,22 @@ export const FloorPlan: FunctionComponent = () => {
     floatingContextMenuRef,
   ]);
 
+  const getCanvasCenter = () => {
+    const canvas = canvasRef.current;
+    if (canvas == null) {
+      return { x: 0, y: 0 };
+    }
+
+    const x = canvas.clientWidth / 2;
+    const y = canvas.clientHeight / 2;
+    return getInverseOffsetPosition({ x, y }, offset.current);
+  };
+
   const handleAddObject = (object: ObjectType) => {
+    const size = 64;
+    const { x: centerX, y: centerY } = getCanvasCenter();
+    const position = { x: centerX - size / 2, y: centerY - size / 2 };
+
     const image = new Image();
     image.src = object.image;
     image.onload = () => {
@@ -332,9 +347,9 @@ export const FloorPlan: FunctionComponent = () => {
         ...shapes.current,
         new Circle(
           String(shapes.current.length + 1),
-          { x: 200, y: 200 },
-          50,
-          50,
+          position,
+          size,
+          size,
           ["#FFFFFF", "#000000"],
           image
         ),
