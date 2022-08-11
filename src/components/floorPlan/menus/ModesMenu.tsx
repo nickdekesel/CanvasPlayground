@@ -1,7 +1,7 @@
 import { FunctionComponent } from "react";
 import { CursorIcon, MoveIcon, ShapesIcon } from "icons";
-import { MenuOption } from "./MenuOption";
-import "./ModesMenu.scss";
+import { Menu } from "components/menu/Menu";
+import { MenuOption } from "components/menu/MenuOption";
 
 export enum Mode {
   Selection,
@@ -10,6 +10,7 @@ export enum Mode {
   Rectangle,
   Circle,
   CustomShape,
+  Lamp,
 }
 
 type ModesMenuProps = {
@@ -24,7 +25,7 @@ export const ModesMenu: FunctionComponent<ModesMenuProps> = ({
   onShapeDrag,
 }) => {
   return (
-    <div className="menu">
+    <Menu>
       <MenuOption
         icon={CursorIcon}
         selected={currentMode === Mode.Selection}
@@ -41,6 +42,6 @@ export const ModesMenu: FunctionComponent<ModesMenuProps> = ({
         onClick={() => onModeChange(Mode.Circle)}
         onMouseDown={(event) => onShapeDrag(event.nativeEvent)}
       />
-    </div>
+    </Menu>
   );
 };

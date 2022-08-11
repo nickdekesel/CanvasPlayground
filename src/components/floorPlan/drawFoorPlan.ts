@@ -44,31 +44,42 @@ const drawShapes = (
     ctx.beginPath();
     const offsetPoint = getOffsetPosition(shape.position, offset);
 
-    const color = shape.fill;
+    const colors = shape.colors;
+    if (colors.length > 0) {
+      if (shape instanceof Rectangle) {
+        ctx.fillStyle = colors[0];
+        ctx.fillRect(offsetPoint.x, offsetPoint.y, shape.width, shape.height);
+      } else if (shape instanceof Line) {
+        ctx.strokeStyle = colors[0];
+        ctx.setLineDash([]);
+        ctx.moveTo(offsetPoint.x, offsetPoint.y);
+        ctx.lineTo(offsetPoint.x + shape.width, offsetPoint.y + shape.height);
+        ctx.stroke();
+      } else if (shape instanceof Circle) {
+        ctx.fillStyle = colors[0];
+        const x = offsetPoint.x + shape.width / 2;
+        const y = offsetPoint.y + shape.height / 2;
+        const radius = shape.getRadius();
+        ctx.arc(x, y, radius, 0, 2 * Math.PI);
+        ctx.fill();
+        const borderColor = colors.length >= 2 ? colors[1] : null;
+        if (borderColor) {
+          ctx.strokeStyle = borderColor;
+          ctx.arc(x, y, radius, 0, 2 * Math.PI);
+          ctx.stroke();
+        }
+      }
+    }
+
     if (shape.image != null) {
+      const imagePadding = 10;
       ctx.drawImage(
         shape.image,
-        offsetPoint.x,
-        offsetPoint.y,
-        shape.width,
-        shape.height
+        offsetPoint.x + imagePadding,
+        offsetPoint.y + imagePadding,
+        shape.width - 2 * imagePadding,
+        shape.height - 2 * imagePadding
       );
-    } else if (shape instanceof Rectangle) {
-      ctx.fillStyle = color;
-      ctx.fillRect(offsetPoint.x, offsetPoint.y, shape.width, shape.height);
-    } else if (shape instanceof Line) {
-      ctx.strokeStyle = color;
-      ctx.setLineDash([]);
-      ctx.moveTo(offsetPoint.x, offsetPoint.y);
-      ctx.lineTo(offsetPoint.x + shape.width, offsetPoint.y + shape.height);
-      ctx.stroke();
-    } else if (shape instanceof Circle) {
-      ctx.fillStyle = color;
-      const x = offsetPoint.x + shape.width / 2;
-      const y = offsetPoint.y + shape.height / 2;
-      const radius = shape.getRadius();
-      ctx.arc(x, y, radius, 0, 2 * Math.PI);
-      ctx.fill();
     }
 
     if (

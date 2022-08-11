@@ -9,17 +9,19 @@ import { useCombinedRefs } from "hooks/useCombinedRefs";
 import { getInverseOffsetPosition, Position } from "utils/positionUtils";
 import { getSelectionContainer, Selection } from "utils/selectionUtils";
 import { Canvas } from "components/Canvas";
-import { Mode, ModesMenu } from "components/modesMenu/ModesMenu";
+import { Mode, ModesMenu } from "components/floorPlan/menus/ModesMenu";
 import { useContextMenu } from "components/contextMenu/useContextMenu";
 import { draw as drawFloorPlan } from "./drawFoorPlan";
 import { FloorPlanContextMenu } from "./FloorPlanContextMenu";
 import "./FloorPlan.scss";
+import { ObjectsMenu } from "components/floorPlan/menus/ObjectsMenu";
+import { MenusOverlay } from "./menus/MenusOverlay";
 
 const mockShapes: Shape[] = [
-  new Rectangle("0", { x: 200, y: 400 }, 200, 200, "#FF0000"),
-  new Rectangle("1", { x: 500, y: 600 }, 300, 200, "#00FF00"),
-  new Line("2", { x: 100, y: 200 }, 100, 100, "#FF0000"),
-  new Circle("3", { x: 600, y: 300 }, 200, 200, "#0000FF"),
+  new Rectangle("0", { x: 200, y: 400 }, 200, 200, ["#FF0000"]),
+  new Rectangle("1", { x: 500, y: 600 }, 300, 200, ["#00FF00"]),
+  new Line("2", { x: 100, y: 200 }, 100, 100, ["#FF0000"]),
+  new Circle("3", { x: 600, y: 300 }, 200, 200, ["#0000FF"]),
 ];
 
 export const FloorPlan: FunctionComponent = () => {
@@ -136,7 +138,7 @@ export const FloorPlan: FunctionComponent = () => {
           getInverseOffsetPosition(start, offset.current),
           end.x - start.x,
           end.y - start.y,
-          "#00FF00"
+          ["#00FF00"]
         );
       } else if (mode === Mode.Rectangle) {
         newShape.current = new Rectangle(
@@ -144,7 +146,7 @@ export const FloorPlan: FunctionComponent = () => {
           getInverseOffsetPosition(start, offset.current),
           end.x - start.x,
           end.y - start.y,
-          "#00FF00"
+          ["#00FF00"]
         );
       } else if (mode === Mode.Circle) {
         const diameter = end.x - start.x;
@@ -153,7 +155,7 @@ export const FloorPlan: FunctionComponent = () => {
           getInverseOffsetPosition(start, offset.current),
           diameter,
           diameter,
-          "#0000FF"
+          ["#0000FF"]
         );
       }
     },
@@ -210,7 +212,7 @@ export const FloorPlan: FunctionComponent = () => {
                 ),
                 bitMap.width / 5.0,
                 bitMap.height / 5.0,
-                "#000",
+                [],
                 bitMap
               )
             );
@@ -321,14 +323,35 @@ export const FloorPlan: FunctionComponent = () => {
     floatingContextMenuRef,
   ]);
 
+  const handleLampClick = () => {
+    const image = new Image();
+    image.src = "images/lamp.png";
+    image.onload = () => {
+      shapes.current = [
+        ...shapes.current,
+        new Circle(
+          String(shapes.current.length + 1),
+          { x: 200, y: 200 },
+          50,
+          50,
+          ["#FFFFFF", "#000000"],
+          image
+        ),
+      ];
+    };
+  };
+
   return (
     <div className="floor-plan">
       <Canvas ref={canvasRef} draw={draw} />
-      <ModesMenu
-        currentMode={mode}
-        onModeChange={setMode}
-        onShapeDrag={handleShapeDrag}
-      />
+      <MenusOverlay>
+        <ModesMenu
+          currentMode={mode}
+          onModeChange={setMode}
+          onShapeDrag={handleShapeDrag}
+        />
+        <ObjectsMenu onLampClick={handleLampClick} />
+      </MenusOverlay>
 
       {showContextMenu && (
         <FloorPlanContextMenu

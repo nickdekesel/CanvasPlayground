@@ -1,4 +1,4 @@
-import { FunctionComponent, MouseEvent } from "react";
+import { FunctionComponent, MouseEvent, ReactElement, ReactNode } from "react";
 import { IconProps } from "icons/Icon";
 
 type MenuOptionProps = {
@@ -24,3 +24,8 @@ export const MenuOption: FunctionComponent<MenuOptionProps> = ({
     </button>
   );
 };
+
+export const isMenuOptionNode = (
+  node: ReactNode
+): node is ReactElement<MenuOptionProps> =>
+  Boolean(node && (node as ReactElement<MenuOptionProps>).type === MenuOption);
