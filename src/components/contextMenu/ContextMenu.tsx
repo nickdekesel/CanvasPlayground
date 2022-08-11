@@ -45,17 +45,15 @@ export const MenuItem: FunctionComponent<MenuItemProps> = ({
   icon: Icon,
   shortcut,
   onClick,
-}) => {
-  return (
-    <button className="menu-item" onClick={onClick}>
-      <span className="content">
-        <Icon className="icon" />
-        <span className="text"> {label}</span>
-      </span>
-      {shortcut ? <span className="shortcut">{shortcut}</span> : null}
-    </button>
-  );
-};
+}) => (
+  <button className="menu-item" onClick={onClick}>
+    <span className="content">
+      <Icon className="icon" />
+      <span className="text"> {label}</span>
+    </span>
+    {shortcut ? <span className="shortcut">{shortcut}</span> : null}
+  </button>
+);
 
 const isMenuItemNode = (node: ReactNode): node is ReactElement<MenuItemProps> =>
   Boolean(node && (node as ReactElement<MenuItemProps>).type === MenuItem);

@@ -7,6 +7,4 @@ type ToolsOverlayProps = {
 
 export const ToolsOverlay: FunctionComponent<ToolsOverlayProps> = ({
   children,
-}) => {
-  return <div className="tools-overlay">{children}</div>;
-};
+}) => <div className="tools-overlay">{children}</div>;

@@ -17,6 +17,7 @@ import { ObjectTools } from "./tools/ObjectTools";
 import { ToolsOverlay } from "./tools/ToolsOverlay";
 import { ObjectType } from "./objects";
 import "./FloorPlan.scss";
+import { ZoomTools } from "./tools/ZoomTools";
 
 // const mockShapes: Shape[] = [
 //   new Rectangle("0", { x: 200, y: 400 }, 200, 200, ["#FF0000"]),
@@ -27,6 +28,7 @@ import "./FloorPlan.scss";
 
 export const FloorPlan: FunctionComponent = () => {
   const [mode, setMode] = useState<Mode>(Mode.Selection);
+  const [zoom, setZoom] = useState(100);
   const previousMode = useRef<Mode>(mode);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -264,7 +266,8 @@ export const FloorPlan: FunctionComponent = () => {
       shapeIdsToSelect.current,
       selection.current,
       offset.current,
-      isDragging.current
+      isDragging.current,
+      zoom
     );
 
   const deleteSelectedItems = () => {
@@ -367,6 +370,7 @@ export const FloorPlan: FunctionComponent = () => {
           onShapeDrag={handleShapeDrag}
         />
         <ObjectTools onAddObject={handleAddObject} />
+        <ZoomTools onZoomChange={setZoom} />
       </ToolsOverlay>
 
       {showContextMenu && (

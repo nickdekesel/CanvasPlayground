@@ -186,7 +186,8 @@ export const draw = (
   shapesIdsToSelect: string[],
   selection: Selection | null,
   offset: Position,
-  isDragging: boolean
+  isDragging: boolean,
+  zoom: number
 ) => {
   drawGrid(ctx, offset);
   drawShapes(

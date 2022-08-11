@@ -13,17 +13,15 @@ export const ToolsOption: FunctionComponent<ToolsOptionProps> = ({
   selected = false,
   onClick,
   onMouseDown,
-}) => {
-  return (
-    <button
-      className={`tools-option ${selected ? "selected" : ""}`}
-      onClick={onClick}
-      onMouseDown={onMouseDown}
-    >
-      <Icon />
-    </button>
-  );
-};
+}) => (
+  <button
+    className={`tools-option ${selected ? "selected" : ""}`}
+    onClick={onClick}
+    onMouseDown={onMouseDown}
+  >
+    <Icon />
+  </button>
+);
 
 export const isToolsOptionNode = (
   node: ReactNode
