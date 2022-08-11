@@ -9,12 +9,12 @@ import { useCombinedRefs } from "hooks/useCombinedRefs";
 import { getInverseOffsetPosition, Position } from "utils/positionUtils";
 import { getSelectionContainer, Selection } from "utils/selectionUtils";
 import { Canvas } from "components/Canvas";
-import { Mode, ModesMenu } from "components/floorPlan/menus/ModesMenu";
+import { Mode, ModeTools } from "components/floorPlan/tools/ModeTools";
 import { useContextMenu } from "components/contextMenu/useContextMenu";
 import { draw as drawFloorPlan } from "./drawFoorPlan";
 import { FloorPlanContextMenu } from "./FloorPlanContextMenu";
-import { ObjectsMenu } from "components/floorPlan/menus/ObjectsMenu";
-import { MenusOverlay } from "./menus/MenusOverlay";
+import { ObjectTools } from "./tools/ObjectTools";
+import { ToolsOverlay } from "./tools/ToolsOverlay";
 import { ObjectType } from "./objects";
 import "./FloorPlan.scss";
 
@@ -360,14 +360,14 @@ export const FloorPlan: FunctionComponent = () => {
   return (
     <div className="floor-plan">
       <Canvas ref={canvasRef} draw={draw} />
-      <MenusOverlay>
-        <ModesMenu
+      <ToolsOverlay>
+        <ModeTools
           currentMode={mode}
           onModeChange={setMode}
           onShapeDrag={handleShapeDrag}
         />
-        <ObjectsMenu onAddObject={handleAddObject} />
-      </MenusOverlay>
+        <ObjectTools onAddObject={handleAddObject} />
+      </ToolsOverlay>
 
       {showContextMenu && (
         <FloorPlanContextMenu

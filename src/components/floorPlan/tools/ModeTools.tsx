@@ -1,7 +1,7 @@
 import { FunctionComponent } from "react";
 import { CursorIcon, MoveIcon, ShapesIcon } from "icons";
-import { Menu } from "components/menu/Menu";
-import { MenuOption } from "components/menu/MenuOption";
+import { ToolsGroup } from "components/tools/ToolsGroup";
+import { ToolsOption } from "components/tools/ToolsOption";
 
 export enum Mode {
   Selection,
@@ -19,29 +19,29 @@ type ModesMenuProps = {
   onShapeDrag: (event: MouseEvent) => void;
 };
 
-export const ModesMenu: FunctionComponent<ModesMenuProps> = ({
+export const ModeTools: FunctionComponent<ModesMenuProps> = ({
   currentMode,
   onModeChange,
   onShapeDrag,
 }) => {
   return (
-    <Menu>
-      <MenuOption
+    <ToolsGroup>
+      <ToolsOption
         icon={CursorIcon}
         selected={currentMode === Mode.Selection}
         onClick={() => onModeChange(Mode.Selection)}
       />
-      <MenuOption
+      <ToolsOption
         icon={MoveIcon}
         selected={currentMode === Mode.Move}
         onClick={() => onModeChange(Mode.Move)}
       />
-      <MenuOption
+      <ToolsOption
         icon={ShapesIcon}
         selected={currentMode === Mode.Circle}
         onClick={() => onModeChange(Mode.Circle)}
         onMouseDown={(event) => onShapeDrag(event.nativeEvent)}
       />
-    </Menu>
+    </ToolsGroup>
   );
 };

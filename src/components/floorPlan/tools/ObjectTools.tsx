@@ -1,26 +1,27 @@
 import { FunctionComponent } from "react";
 import { CameraIcon, LightBulbIcon } from "icons";
-import { Menu } from "components/menu/Menu";
-import { MenuOption } from "components/menu/MenuOption";
-import { objects, ObjectType } from "../objects";
 
-type ObjectsMenuProps = {
+import { objects, ObjectType } from "../objects";
+import { ToolsGroup } from "components/tools/ToolsGroup";
+import { ToolsOption } from "components/tools/ToolsOption";
+
+type ObjectToolsProps = {
   onAddObject: (object: ObjectType) => void;
 };
 
-export const ObjectsMenu: FunctionComponent<ObjectsMenuProps> = ({
+export const ObjectTools: FunctionComponent<ObjectToolsProps> = ({
   onAddObject,
 }) => {
   return (
-    <Menu>
-      <MenuOption
+    <ToolsGroup>
+      <ToolsOption
         icon={LightBulbIcon}
         onClick={() => onAddObject(objects.lamp)}
       />
-      <MenuOption
+      <ToolsOption
         icon={CameraIcon}
         onClick={() => onAddObject(objects.camera)}
       />
-    </Menu>
+    </ToolsGroup>
   );
 };
