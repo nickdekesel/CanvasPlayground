@@ -363,13 +363,15 @@ export const FloorPlan: FunctionComponent = () => {
   return (
     <div className="floor-plan">
       <Canvas ref={canvasRef} draw={draw} />
-      <ToolsOverlay>
+      <ToolsOverlay placement="top-left">
         <ModeTools
           currentMode={mode}
           onModeChange={setMode}
           onShapeDrag={handleShapeDrag}
         />
         <ObjectTools onAddObject={handleAddObject} />
+      </ToolsOverlay>
+      <ToolsOverlay placement="bottom-left">
         <ZoomTools zoom={zoom} onZoomChange={setZoom} />
       </ToolsOverlay>
 
