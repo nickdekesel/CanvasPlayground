@@ -4,9 +4,9 @@ export type ObjectType = {
 
 export const objects: Record<string, ObjectType> = {
   lamp: {
-    image: "images/lamp.png",
+    image: "lamp",
   },
   camera: {
-    image: "images/camera.png",
+    image: "camera",
   },
 };

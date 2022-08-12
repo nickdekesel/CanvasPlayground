@@ -1,3 +1,4 @@
+import { images, IMAGE_OBJECT_SIZES } from "utils/images";
 import { Circle, Line, Rectangle, Shape } from "../../models/Shape";
 import {
   getOffsetPosition,
@@ -5,6 +6,7 @@ import {
   Position,
 } from "../../utils/positionUtils";
 import { getSelectionContainer, Selection } from "../../utils/selectionUtils";
+import { OBJECT_SCALES } from "./tools/ObjectSizeTools";
 
 const drawGrid = (
   ctx: CanvasRenderingContext2D,
@@ -42,7 +44,8 @@ const drawShapes = (
   selectedShapesIds: string[],
   shapeIdsToSelect: string[],
   offset: Position,
-  scale: number
+  scale: number,
+  imageVariant: number
 ) => {
   const allShapes: Shape[] = [...shapes];
   if (newShape) {
@@ -93,9 +96,16 @@ const drawShapes = (
     }
 
     if (shape.image != null) {
+      const image =
+        images[`${shape.image}${imageVariant}`] || images[`${shape.image}`];
+
+      if (image == null) {
+        return;
+      }
+
       const imagePadding = 10 * scale;
       ctx.drawImage(
-        shape.image,
+        image,
         offsetPoint.x + imagePadding,
         offsetPoint.y + imagePadding,
         width - 2 * imagePadding,
@@ -226,8 +236,10 @@ export const draw = (
   offset: Position,
   isDragging: boolean,
   zoom: number,
-  shapeScale = 1
+  shapeSize = 1
 ) => {
+  const shapeScale = OBJECT_SCALES[shapeSize];
+  const imageVariant = IMAGE_OBJECT_SIZES[shapeSize];
   drawGrid(ctx, offset, zoom);
   drawShapes(
     ctx,
@@ -236,7 +248,8 @@ export const draw = (
     selectedShapesIds,
     shapesIdsToSelect,
     offset,
-    shapeScale
+    shapeScale,
+    imageVariant
   );
   drawSelection(
     ctx,

@@ -9,7 +9,7 @@ export abstract class Shape {
     public width: number,
     public height: number,
     public colors: Color[] = [],
-    public image: ImageBitmap | HTMLImageElement | undefined = undefined
+    public image: string | undefined = undefined
   ) {}
 
   fixAbsoluteDimensions() {

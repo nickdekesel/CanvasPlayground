@@ -17,21 +17,14 @@ import { AddObjectTools } from "./tools/AddObjectTools";
 import { ToolsOverlay } from "./tools/ToolsOverlay";
 import { ObjectType } from "./objects";
 import { ZoomTools } from "./tools/ZoomTools";
+import { ObjectSizeTools } from "./tools/ObjectSizeTools";
 import "./FloorPlan.scss";
-import { ObjectSizeTools, OBJECT_SCALES } from "./tools/ObjectSizeTools";
-
-// const mockShapes: Shape[] = [
-//   new Rectangle("0", { x: 200, y: 400 }, 200, 200, ["#FF0000"]),
-//   new Rectangle("1", { x: 500, y: 600 }, 300, 200, ["#00FF00"]),
-//   new Line("2", { x: 100, y: 200 }, 100, 100, ["#FF0000"]),
-//   new Circle("3", { x: 600, y: 300 }, 200, 200, ["#0000FF"]),
-// ];
+import { images } from "utils/images";
 
 export const FloorPlan: FunctionComponent = () => {
   const [mode, setMode] = useState<Mode>(Mode.Selection);
   const [zoom, setZoom] = useState(100);
   const [objectSize, setObjectSize] = useState(1);
-  const objectScale = OBJECT_SCALES[objectSize];
 
   const previousMode = useRef<Mode>(mode);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -208,6 +201,8 @@ export const FloorPlan: FunctionComponent = () => {
           file?.name.endsWith(".png")
         ) {
           createImageBitmap(file).then((bitMap) => {
+            const imageKey = "uploadedFile";
+            images[imageKey] = bitMap;
             shapes.current.push(
               new Rectangle(
                 String(shapes.current.length + 1),
@@ -218,10 +213,10 @@ export const FloorPlan: FunctionComponent = () => {
                   },
                   offset.current
                 ),
-                bitMap.width / 5.0,
-                bitMap.height / 5.0,
+                bitMap.width,
+                bitMap.height,
                 [],
-                bitMap
+                imageKey
               )
             );
           });
@@ -273,7 +268,7 @@ export const FloorPlan: FunctionComponent = () => {
       offset.current,
       isDragging.current,
       zoom / 100,
-      objectScale
+      objectSize
     );
 
   const deleteSelectedItems = () => {
@@ -349,21 +344,17 @@ export const FloorPlan: FunctionComponent = () => {
     const { x: centerX, y: centerY } = getCanvasCenter();
     const position = { x: centerX - size / 2, y: centerY - size / 2 };
 
-    const image = new Image();
-    image.src = object.image;
-    image.onload = () => {
-      shapes.current = [
-        ...shapes.current,
-        new Circle(
-          String(shapes.current.length + 1),
-          position,
-          size,
-          size,
-          ["#FFFFFF", "#000000"],
-          image
-        ),
-      ];
-    };
+    shapes.current = [
+      ...shapes.current,
+      new Circle(
+        String(shapes.current.length + 1),
+        position,
+        size,
+        size,
+        ["#FFFFFF", "#000000"],
+        object.image
+      ),
+    ];
   };
 
   return (
