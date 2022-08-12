@@ -1,10 +1,12 @@
 import { FunctionComponent, KeyboardEvent } from "react";
 
 export type ToolsInputProps = {
-  value: string;
+  value: string | number;
   type?: string;
   min?: number;
   max?: number;
+  step?: number;
+  width?: number | string;
   onChange: (value: string) => void;
   onFocus?: () => void;
   onBlur?: () => void;
@@ -16,6 +18,8 @@ export const ToolsInput: FunctionComponent<ToolsInputProps> = ({
   type = "text",
   min,
   max,
+  step,
+  width,
   onChange,
   onFocus,
   onBlur,
@@ -34,6 +38,8 @@ export const ToolsInput: FunctionComponent<ToolsInputProps> = ({
       type={type}
       min={min}
       max={max}
+      step={step}
+      style={{ width }}
       onChange={(e) => onChange(e.target.value)}
       onFocus={onFocus}
       onBlur={onBlur}

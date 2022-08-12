@@ -4,11 +4,11 @@ import { objects, ObjectType } from "../objects";
 import { ToolsGroup } from "components/tools/ToolsGroup";
 import { ToolsOption } from "components/tools/ToolsOption";
 
-type ObjectToolsProps = {
+type AddObjectToolsProps = {
   onAddObject: (object: ObjectType) => void;
 };
 
-export const ObjectTools: FunctionComponent<ObjectToolsProps> = ({
+export const AddObjectTools: FunctionComponent<AddObjectToolsProps> = ({
   onAddObject,
 }) => (
   <ToolsGroup>

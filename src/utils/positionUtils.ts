@@ -9,9 +9,9 @@ export const getRelativePosition = (
   return { x: x - left, y: y - top };
 };
 
-export const getOffsetPosition = (position: Position, offset: Position) => ({
-  x: offset.x + position.x,
-  y: offset.y + position.y,
+export const getOffsetPosition = (position: Position, offsets: Position[]) => ({
+  x: offsets.reduce((a, b) => a + b.x, 0) + position.x,
+  y: offsets.reduce((a, b) => a + b.y, 0) + position.y,
 });
 
 export const getInverseOffsetPosition = (
@@ -21,3 +21,15 @@ export const getInverseOffsetPosition = (
   x: position.x - offset.x,
   y: position.y - offset.y,
 });
+
+export const getScaledData = (width: number, height: number, scale: number) => {
+  const scaledWidth = width * scale;
+  const scaledHeight = height * scale;
+  const scaleOffsetX = (width - scaledWidth) / 2;
+  const scaleOffsetY = (height - scaledHeight) / 2;
+  return {
+    width: scaledWidth,
+    height: scaledHeight,
+    offset: { x: scaleOffsetX, y: scaleOffsetY },
+  };
+};

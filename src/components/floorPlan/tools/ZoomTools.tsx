@@ -5,7 +5,7 @@ import { MinusIcon, PlusIcon } from "icons";
 import { ToolsInput } from "components/tools/ToolsInput";
 
 type ZoomToolsProps = {
-  zoom?: number;
+  zoom: number;
   onZoomChange: (zoom: number) => void;
 };
 
@@ -64,6 +64,7 @@ export const ZoomTools: FunctionComponent<ZoomToolsProps> = ({
         type={isFocussed ? "number" : "text"}
         min={MIN_ZOOM}
         max={MAX_ZOOM}
+        width={50}
         onChange={setZoomInputValue}
         onFocus={() => setIsFocussed(true)}
         onBlur={handleBlur}

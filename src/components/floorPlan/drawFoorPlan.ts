@@ -1,5 +1,9 @@
 import { Circle, Line, Rectangle, Shape } from "../../models/Shape";
-import { getOffsetPosition, Position } from "../../utils/positionUtils";
+import {
+  getOffsetPosition,
+  getScaledData,
+  Position,
+} from "../../utils/positionUtils";
 import { getSelectionContainer, Selection } from "../../utils/selectionUtils";
 
 const drawGrid = (
@@ -37,7 +41,8 @@ const drawShapes = (
   newShape: Shape | null,
   selectedShapesIds: string[],
   shapeIdsToSelect: string[],
-  offset: Position
+  offset: Position,
+  scale: number
 ) => {
   const allShapes: Shape[] = [...shapes];
   if (newShape) {
@@ -46,31 +51,40 @@ const drawShapes = (
 
   for (let shape of allShapes) {
     ctx.beginPath();
-    const offsetPoint = getOffsetPosition(shape.position, offset);
+
+    const {
+      width,
+      height,
+      offset: scaleOffset,
+    } = getScaledData(shape.width, shape.height, scale);
+    const offsetPoint = getOffsetPosition(shape.position, [
+      offset,
+      scaleOffset,
+    ]);
 
     const colors = shape.colors;
     if (colors.length > 0) {
       if (shape instanceof Rectangle) {
         ctx.fillStyle = colors[0];
-        ctx.fillRect(offsetPoint.x, offsetPoint.y, shape.width, shape.height);
+        ctx.fillRect(offsetPoint.x, offsetPoint.y, width, height);
       } else if (shape instanceof Line) {
         ctx.strokeStyle = colors[0];
         ctx.lineWidth = 1;
         ctx.setLineDash([]);
         ctx.moveTo(offsetPoint.x, offsetPoint.y);
-        ctx.lineTo(offsetPoint.x + shape.width, offsetPoint.y + shape.height);
+        ctx.lineTo(offsetPoint.x + width, offsetPoint.y + height);
         ctx.stroke();
       } else if (shape instanceof Circle) {
         ctx.fillStyle = colors[0];
-        const x = offsetPoint.x + shape.width / 2;
-        const y = offsetPoint.y + shape.height / 2;
-        const radius = shape.getRadius();
+        const x = offsetPoint.x + width / 2;
+        const y = offsetPoint.y + height / 2;
+        const radius = shape.getRadius(scale);
         ctx.arc(x, y, radius, 0, 2 * Math.PI);
         ctx.fill();
         const borderColor = colors.length >= 2 ? colors[1] : null;
         if (borderColor) {
           ctx.strokeStyle = borderColor;
-          ctx.lineWidth = 2;
+          ctx.lineWidth = 2 * scale;
           ctx.setLineDash([]);
           ctx.arc(x, y, radius, 0, 2 * Math.PI);
           ctx.stroke();
@@ -79,13 +93,13 @@ const drawShapes = (
     }
 
     if (shape.image != null) {
-      const imagePadding = 10;
+      const imagePadding = 10 * scale;
       ctx.drawImage(
         shape.image,
         offsetPoint.x + imagePadding,
         offsetPoint.y + imagePadding,
-        shape.width - 2 * imagePadding,
-        shape.height - 2 * imagePadding
+        width - 2 * imagePadding,
+        height - 2 * imagePadding
       );
     }
 
@@ -93,7 +107,7 @@ const drawShapes = (
       selectedShapesIds.includes(shape.id) ||
       shapeIdsToSelect.includes(shape.id)
     ) {
-      drawShapeSelection(ctx, shape, offset);
+      drawShapeSelection(ctx, shape, offset, scale);
     }
   }
 };
@@ -126,13 +140,19 @@ const drawSelectionContainer = (
   shapes: Shape[],
   selectedShapesIds: string[],
   offset: Position,
-  isDragging: boolean
+  isDragging: boolean,
+  shapeScale: number
 ) => {
   if (isDragging || selectedShapesIds.length <= 1) {
     return;
   }
 
-  const container = getSelectionContainer(shapes, selectedShapesIds, offset);
+  const container = getSelectionContainer(
+    shapes,
+    selectedShapesIds,
+    offset,
+    shapeScale
+  );
 
   if (container == null) {
     return;
@@ -153,10 +173,16 @@ const drawSelectionContainer = (
 const drawShapeSelection = (
   ctx: CanvasRenderingContext2D,
   shape: Shape,
-  offset: Position
+  offset: Position,
+  scale: number
 ) => {
   const margin = 2;
-  const { x, y } = getOffsetPosition(shape.position, offset);
+  const {
+    width,
+    height,
+    offset: scaleOffset,
+  } = getScaledData(shape.width, shape.height, scale);
+  const { x, y } = getOffsetPosition(shape.position, [offset, scaleOffset]);
 
   ctx.beginPath();
   ctx.lineWidth = 1;
@@ -165,8 +191,8 @@ const drawShapeSelection = (
   ctx.strokeRect(
     x - margin,
     y - margin,
-    shape.width + 2 * margin,
-    shape.height + 2 * margin
+    width + 2 * margin,
+    height + 2 * margin
   );
 };
 
@@ -176,10 +202,18 @@ const drawSelection = (
   shapes: Shape[],
   selectedShapesIds: string[],
   offset: Position,
-  isDragging: boolean
+  isDragging: boolean,
+  shapeScale: number
 ) => {
   drawSelectionArea(ctx, selection);
-  drawSelectionContainer(ctx, shapes, selectedShapesIds, offset, isDragging);
+  drawSelectionContainer(
+    ctx,
+    shapes,
+    selectedShapesIds,
+    offset,
+    isDragging,
+    shapeScale
+  );
 };
 
 export const draw = (
@@ -191,7 +225,8 @@ export const draw = (
   selection: Selection | null,
   offset: Position,
   isDragging: boolean,
-  zoom: number
+  zoom: number,
+  shapeScale = 1
 ) => {
   drawGrid(ctx, offset, zoom);
   drawShapes(
@@ -200,7 +235,16 @@ export const draw = (
     newShape,
     selectedShapesIds,
     shapesIdsToSelect,
-    offset
+    offset,
+    shapeScale
   );
-  drawSelection(ctx, selection, shapes, selectedShapesIds, offset, isDragging);
+  drawSelection(
+    ctx,
+    selection,
+    shapes,
+    selectedShapesIds,
+    offset,
+    isDragging,
+    shapeScale
+  );
 };

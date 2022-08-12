@@ -81,8 +81,8 @@ export class Line extends Shape {
 }
 
 export class Circle extends Shape {
-  isInside(position: Position): boolean {
-    const radius = this.getRadius();
+  isInside(position: Position, scale = 1): boolean {
+    const radius = this.getRadius(scale);
     const { x, y } = this.getCenter();
 
     const dx = Math.abs(position.x - x);
@@ -98,8 +98,8 @@ export class Circle extends Shape {
     return { x: centerX, y: centerY };
   }
 
-  getRadius(): number {
-    const radius = Math.abs(this.width / 2);
+  getRadius(scale = 1): number {
+    const radius = Math.abs((this.width * scale) / 2);
     return radius;
   }
 }

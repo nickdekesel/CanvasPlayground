@@ -13,11 +13,12 @@ import { Mode, ModeTools } from "components/floorPlan/tools/ModeTools";
 import { useContextMenu } from "components/contextMenu/useContextMenu";
 import { draw as drawFloorPlan } from "./drawFoorPlan";
 import { FloorPlanContextMenu } from "./FloorPlanContextMenu";
-import { ObjectTools } from "./tools/ObjectTools";
+import { AddObjectTools } from "./tools/AddObjectTools";
 import { ToolsOverlay } from "./tools/ToolsOverlay";
 import { ObjectType } from "./objects";
-import "./FloorPlan.scss";
 import { ZoomTools } from "./tools/ZoomTools";
+import "./FloorPlan.scss";
+import { ObjectSizeTools, OBJECT_SCALES } from "./tools/ObjectSizeTools";
 
 // const mockShapes: Shape[] = [
 //   new Rectangle("0", { x: 200, y: 400 }, 200, 200, ["#FF0000"]),
@@ -29,6 +30,9 @@ import { ZoomTools } from "./tools/ZoomTools";
 export const FloorPlan: FunctionComponent = () => {
   const [mode, setMode] = useState<Mode>(Mode.Selection);
   const [zoom, setZoom] = useState(100);
+  const [objectSize, setObjectSize] = useState(1);
+  const objectScale = OBJECT_SCALES[objectSize];
+
   const previousMode = useRef<Mode>(mode);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -54,7 +58,8 @@ export const FloorPlan: FunctionComponent = () => {
     const selectionContainer = getSelectionContainer(
       shapes.current,
       selectedShapesIds.current,
-      offset.current
+      offset.current,
+      objectSize
     );
     return !!selectionContainer?.isInside(position);
   };
@@ -267,7 +272,8 @@ export const FloorPlan: FunctionComponent = () => {
       selection.current,
       offset.current,
       isDragging.current,
-      zoom / 100
+      zoom / 100,
+      objectScale
     );
 
   const deleteSelectedItems = () => {
@@ -369,10 +375,11 @@ export const FloorPlan: FunctionComponent = () => {
           onModeChange={setMode}
           onShapeDrag={handleShapeDrag}
         />
-        <ObjectTools onAddObject={handleAddObject} />
+        <AddObjectTools onAddObject={handleAddObject} />
       </ToolsOverlay>
       <ToolsOverlay placement="bottom-left">
         <ZoomTools zoom={zoom} onZoomChange={setZoom} />
+        <ObjectSizeTools size={objectSize} onSizeChange={setObjectSize} />
       </ToolsOverlay>
 
       {showContextMenu && (
