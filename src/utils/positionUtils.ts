@@ -1,3 +1,5 @@
+import { Shape } from "models/Shape";
+
 export type Position = { x: number; y: number };
 
 export const getRelativePosition = (
@@ -31,5 +33,21 @@ export const getScaledData = (width: number, height: number, scale: number) => {
     width: scaledWidth,
     height: scaledHeight,
     offset: { x: scaleOffsetX, y: scaleOffsetY },
+  };
+};
+
+export const getScaledShapeData = (shape: Shape, scale: number) => {
+  const { width, height, offset } = getScaledData(
+    shape.width,
+    shape.height,
+    scale
+  );
+  return {
+    width,
+    height,
+    position: {
+      x: shape.position.x + offset.x,
+      y: shape.position.y + offset.y,
+    },
   };
 };

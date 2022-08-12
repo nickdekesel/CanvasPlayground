@@ -5,7 +5,11 @@ import { areRectanglesOverlapping } from "utils/rectangleUtils";
 import { useDrag, MouseButton } from "hooks/useDrag";
 import { useHover } from "hooks/useHover";
 import { useCombinedRefs } from "hooks/useCombinedRefs";
-import { getInverseOffsetPosition, Position } from "utils/positionUtils";
+import {
+  getInverseOffsetPosition,
+  getScaledShapeData,
+  Position,
+} from "utils/positionUtils";
 import { getSelectionContainer, Selection } from "utils/selectionUtils";
 import { Canvas } from "components/Canvas";
 import { Mode, ModeTools } from "components/floorPlan/tools/ModeTools";
@@ -72,8 +76,17 @@ export const FloorPlan: FunctionComponent = () => {
 
     const shapesInSelectionArea = [];
     for (let shape of shapes.current) {
-      // TODO: FIX OVERLAP TO ACCOMODATE SHAPE SCALING
-      if (areRectanglesOverlapping(selectionArea, shape)) {
+      const { width, height, position } = getScaledShapeData(
+        shape,
+        objectScale
+      );
+      const shapePerimeter = new Rectangle(
+        "perimeter",
+        position,
+        width,
+        height
+      );
+      if (areRectanglesOverlapping(selectionArea, shapePerimeter)) {
         shapesInSelectionArea.push(shape.id);
       }
     }
@@ -164,11 +177,11 @@ export const FloorPlan: FunctionComponent = () => {
       isDragging.current = false;
 
       setMode(previousMode.current);
-
       setCursor(end, previousMode.current);
+
       if (newShape.current) {
-        // TODO: FIX SCALING FOR NEW SHAPE
         newShape.current.fixAbsoluteDimensions();
+        newShape.current.applyScale(1 / objectScale);
         shapes.current = [...shapes.current, newShape.current];
         selectedShapesIds.current = [newShape.current.id];
         newShape.current = null;

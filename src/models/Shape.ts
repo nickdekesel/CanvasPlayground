@@ -1,4 +1,4 @@
-import { Position } from "../utils/positionUtils";
+import { getScaledShapeData, Position } from "../utils/positionUtils";
 
 type Color = string | "red" | "blue" | "green";
 
@@ -21,6 +21,13 @@ export abstract class Shape {
       this.position.y = this.position.y + this.height;
       this.height = Math.abs(this.height);
     }
+  }
+
+  applyScale(scale: number) {
+    const { width, height, position } = getScaledShapeData(this, scale);
+    this.width = width;
+    this.height = height;
+    this.position = position;
   }
 
   abstract isInside(position: Position): boolean;
