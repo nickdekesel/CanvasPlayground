@@ -18,6 +18,7 @@ export const ZoomTools: FunctionComponent<ZoomToolsProps> = ({
   onZoomChange,
 }) => {
   const [zoomInputValue, setZoomInputValue] = useState(() => String(zoom));
+  const [isFocussed, setIsFocussed] = useState(false);
 
   useEffect(() => {
     setZoomInputValue(String(zoom));
@@ -45,14 +46,27 @@ export const ZoomTools: FunctionComponent<ZoomToolsProps> = ({
     }
   };
 
+  const handleBlur = () => {
+    setIsFocussed(false);
+    submitZoomInput();
+  };
+
+  let zoomInputText = zoomInputValue.replaceAll("%", "");
+  if (!isFocussed) {
+    zoomInputText += "%";
+  }
+
   return (
     <ToolsGroup direction="horizontal">
       <ToolsOption icon={MinusIcon} onClick={decreaseZoom} />
       <ToolsInput
-        value={zoomInputValue}
-        type="number"
+        value={zoomInputText}
+        type={isFocussed ? "number" : "text"}
+        min={MIN_ZOOM}
+        max={MAX_ZOOM}
         onChange={setZoomInputValue}
-        onBlur={submitZoomInput}
+        onFocus={() => setIsFocussed(true)}
+        onBlur={handleBlur}
         onEnter={submitZoomInput}
       />
       <ToolsOption icon={PlusIcon} onClick={increaseZoom} />
