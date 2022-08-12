@@ -44,7 +44,7 @@ const drawShapes = (
   selectedShapesIds: string[],
   shapeIdsToSelect: string[],
   offset: Position,
-  scale: number,
+  shapeScale: number,
   imageVariant: number
 ) => {
   const allShapes: Shape[] = [...shapes];
@@ -55,6 +55,7 @@ const drawShapes = (
   for (let shape of allShapes) {
     ctx.beginPath();
 
+    const scale = shape === newShape ? 1 : shapeScale;
     const {
       width,
       height,

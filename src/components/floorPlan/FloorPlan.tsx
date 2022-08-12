@@ -4,7 +4,6 @@ import { Circle, Line, Rectangle, Shape } from "models/Shape";
 import { areRectanglesOverlapping } from "utils/rectangleUtils";
 import { useDrag, MouseButton } from "hooks/useDrag";
 import { useHover } from "hooks/useHover";
-import { useFileDrop } from "hooks/useFileDrop";
 import { useCombinedRefs } from "hooks/useCombinedRefs";
 import { getInverseOffsetPosition, Position } from "utils/positionUtils";
 import { getSelectionContainer, Selection } from "utils/selectionUtils";
@@ -17,14 +16,14 @@ import { AddObjectTools } from "./tools/AddObjectTools";
 import { ToolsOverlay } from "./tools/ToolsOverlay";
 import { ObjectType } from "./objects";
 import { ZoomTools } from "./tools/ZoomTools";
-import { ObjectSizeTools } from "./tools/ObjectSizeTools";
+import { ObjectSizeTools, OBJECT_SCALES } from "./tools/ObjectSizeTools";
 import "./FloorPlan.scss";
-import { images } from "utils/images";
 
 export const FloorPlan: FunctionComponent = () => {
   const [mode, setMode] = useState<Mode>(Mode.Selection);
   const [zoom, setZoom] = useState(100);
   const [objectSize, setObjectSize] = useState(1);
+  const objectScale = OBJECT_SCALES[objectSize];
 
   const previousMode = useRef<Mode>(mode);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -52,7 +51,7 @@ export const FloorPlan: FunctionComponent = () => {
       shapes.current,
       selectedShapesIds.current,
       offset.current,
-      objectSize
+      objectScale
     );
     return !!selectionContainer?.isInside(position);
   };
@@ -73,6 +72,7 @@ export const FloorPlan: FunctionComponent = () => {
 
     const shapesInSelectionArea = [];
     for (let shape of shapes.current) {
+      // TODO: FIX OVERLAP TO ACCOMODATE SHAPE SCALING
       if (areRectanglesOverlapping(selectionArea, shape)) {
         shapesInSelectionArea.push(shape.id);
       }
@@ -167,6 +167,7 @@ export const FloorPlan: FunctionComponent = () => {
 
       setCursor(end, previousMode.current);
       if (newShape.current) {
+        // TODO: FIX SCALING FOR NEW SHAPE
         newShape.current.fixAbsoluteDimensions();
         shapes.current = [...shapes.current, newShape.current];
         selectedShapesIds.current = [newShape.current.id];
@@ -184,46 +185,6 @@ export const FloorPlan: FunctionComponent = () => {
     setMode(Mode.Circle);
     triggerDrag(event);
   };
-
-  useFileDrop(
-    canvasRef,
-    useCallback((event: DragEvent) => {
-      if (!event.dataTransfer?.files.length) {
-        return;
-      }
-
-      const files = event.dataTransfer.files;
-      for (let i = 0; i < files.length; i++) {
-        const file = files.item(i);
-        if (
-          file?.name.endsWith(".jpeg") ||
-          file?.name.endsWith(".jpg") ||
-          file?.name.endsWith(".png")
-        ) {
-          createImageBitmap(file).then((bitMap) => {
-            const imageKey = "uploadedFile";
-            images[imageKey] = bitMap;
-            shapes.current.push(
-              new Rectangle(
-                String(shapes.current.length + 1),
-                getInverseOffsetPosition(
-                  {
-                    x: event.clientX,
-                    y: event.clientY,
-                  },
-                  offset.current
-                ),
-                bitMap.width,
-                bitMap.height,
-                [],
-                imageKey
-              )
-            );
-          });
-        }
-      }
-    }, [])
-  );
 
   const setDefaultCursor = (mode: Mode) => {
     const canvasElement = canvasRef.current;
