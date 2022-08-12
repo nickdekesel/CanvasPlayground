@@ -2,8 +2,12 @@ import { Circle, Line, Rectangle, Shape } from "../../models/Shape";
 import { getOffsetPosition, Position } from "../../utils/positionUtils";
 import { getSelectionContainer, Selection } from "../../utils/selectionUtils";
 
-const drawGrid = (ctx: CanvasRenderingContext2D, offset: Position) => {
-  const gap = 40;
+const drawGrid = (
+  ctx: CanvasRenderingContext2D,
+  offset: Position,
+  zoom: number
+) => {
+  const gap = 40 * zoom;
   const width = ctx.canvas.clientWidth;
   const height = ctx.canvas.clientHeight;
 
@@ -189,7 +193,7 @@ export const draw = (
   isDragging: boolean,
   zoom: number
 ) => {
-  drawGrid(ctx, offset);
+  drawGrid(ctx, offset, zoom);
   drawShapes(
     ctx,
     shapes,

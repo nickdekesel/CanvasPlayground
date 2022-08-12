@@ -267,7 +267,7 @@ export const FloorPlan: FunctionComponent = () => {
       selection.current,
       offset.current,
       isDragging.current,
-      zoom
+      zoom / 100
     );
 
   const deleteSelectedItems = () => {
