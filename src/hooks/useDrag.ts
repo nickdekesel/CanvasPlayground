@@ -29,7 +29,6 @@ export const useDrag = (
 
   const handleDragStart = useCallback(
     (event: MouseEvent) => {
-      event.preventDefault();
       const element = elementRef.current;
       if (element == null) {
         return;
@@ -101,13 +100,19 @@ export const useDrag = (
       currentPosition.current = endPosition;
     };
 
+    const preventDefault = (event: { preventDefault: () => void }) => {
+      event.preventDefault();
+    };
+
     element.addEventListener("mousedown", handleMouseDown);
     window.addEventListener("mouseup", handleMouseUp);
     window.addEventListener("mousemove", handleMouseMove);
+    element.addEventListener("dragstart", preventDefault);
     return () => {
       element.removeEventListener("mousedown", handleMouseDown);
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("mousemove", handleMouseMove);
+      element.removeEventListener("dragstart", preventDefault);
     };
   }, [elementRef, onDrag, handleDragStart, onDragEnd]);
 

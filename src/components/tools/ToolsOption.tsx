@@ -1,7 +1,7 @@
-import { FunctionComponent, MouseEvent, ReactElement, ReactNode } from "react";
+import { FunctionComponent, MouseEvent } from "react";
 import { IconProps } from "icons/Icon";
 
-type ToolsOptionProps = {
+export type ToolsOptionProps = {
   icon: FunctionComponent<IconProps>;
   selected?: boolean;
   onClick: () => void;
@@ -22,10 +22,3 @@ export const ToolsOption: FunctionComponent<ToolsOptionProps> = ({
     <Icon />
   </button>
 );
-
-export const isToolsOptionNode = (
-  node: ReactNode
-): node is ReactElement<ToolsOptionProps> =>
-  Boolean(
-    node && (node as ReactElement<ToolsOptionProps>).type === ToolsOption
-  );

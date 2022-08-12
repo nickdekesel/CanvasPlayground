@@ -370,7 +370,7 @@ export const FloorPlan: FunctionComponent = () => {
           onShapeDrag={handleShapeDrag}
         />
         <ObjectTools onAddObject={handleAddObject} />
-        <ZoomTools onZoomChange={setZoom} />
+        <ZoomTools zoom={zoom} onZoomChange={setZoom} />
       </ToolsOverlay>
 
       {showContextMenu && (
