@@ -17,4 +17,7 @@ for (let object of objects) {
   }
 }
 
+loadImage("floorPlan", "images/plan-ground-floor.jpg");
+loadImage("document", "images/document.png");
+
 export { images };

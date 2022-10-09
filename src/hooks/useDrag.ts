@@ -83,6 +83,8 @@ export const useDrag = (
         return;
       }
 
+      event.preventDefault();
+
       const endPosition = getRelativePosition(
         element,
         event.clientX,
